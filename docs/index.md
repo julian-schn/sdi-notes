@@ -1,6 +1,7 @@
-# Software Defined Infrastructure - Notes
+# Home
+
 - Notes and code for SDI
 
 !!! tip "Reference"
-Slides and material on [Freedocs](https://freedocs.mi.hdm-stuttgart.de/sdi.html)
 
+Slides and material on [Freedocs](https://freedocs.mi.hdm-stuttgart.de/sdi.html)
