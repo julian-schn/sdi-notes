@@ -60,22 +60,7 @@ markdown_extensions:
   - toc:
       permalink: true
 
-# Navigation
-nav:
-  - Home: index.md
-  - Infrastructure as Code:
-      - Introduction: iac/introduction.md
-      - Terraform Basics: iac/terraform-basics.md
-      - Terraform Advanced: iac/terraform-advanced.md
-
-  - Cloud Platforms:
-      - AWS: cloud/aws.md
-      - Azure: cloud/azure.md
-      - GCP: cloud/gcp.md
-  - DevOps & CI/CD:
-      - GitOps: devops/gitops.md
-      - Monitoring: devops/monitoring.md
-      - Security: devops/security.md
+# Navigation will be automatically generated from file structure
 
 # Plugins
 plugins:

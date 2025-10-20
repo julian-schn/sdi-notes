@@ -49,18 +49,7 @@ terraform.rc
 terraform.tfplan
 terraform.tfplan.*
 
-# Kubernetes
-*.kubeconfig
-kubeconfig
-.kube/config
-secrets.yaml
-secret.yaml
-*-secret.yaml
-*-secrets.yaml
 
-# Helm
-charts/*.tgz
-.helm/
 
 # Docker
 .dockerignore
