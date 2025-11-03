@@ -1,0 +1,4 @@
+title: IaC
+arrange:
+  - index.md
+  - "*.md"

@@ -10,7 +10,7 @@ repo_url: https://github.com/julian-schn/sdi-notes
 nav:
   - Home: index.md
   - Exercises: Exercises/
-  - iac: iac/
+  - IaC: iac/
 theme:
   name: material
   features:
@@ -68,6 +68,7 @@ markdown_extensions:
 # Plugins
 plugins:
   - search
+  - awesome-pages
   - git-revision-date-localized:
       enable_creation_date: true
 

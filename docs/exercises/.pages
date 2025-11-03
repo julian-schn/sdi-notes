@@ -1,0 +1,4 @@
+title: Exercises
+arrange:
+  - index.md
+  - "*.md"
