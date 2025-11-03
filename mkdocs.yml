@@ -9,22 +9,8 @@ repo_url: https://github.com/julian-schn/sdi-notes
 # Configuration
 nav:
   - Home: index.md
-  - Exercises:
-      - 6 - SSH Agent Forwarding: Exercises/6 ssh hopping.md
-      - 7 - SSH Port Forwarding: Exercises/7 ssh port forwarding.md
-      - 8 - x11 Forwarding: Exercises/8 x11 forwarding.md
-      - 9 - Directory transfer with rsync and ssh: Exercises/9 rsync.md
-      - 10 - Index based search: Exercises/10 index based search.md
-      - 11 - tail -f: Exercises/11 tail.md
-      - 12 - journalctl: Exercises/12 journalctl.md
-      - 13 - Incrementally creating a base system: Exercises/13 incrementally creating base system.md
-  - IaC:
-      - Introduction: iac/introduction.md
-      - Terraform Install: iac/terraform-install.md
-      - Terraform Basics: iac/terraform-basics.md
-      - Terraform Configuration: iac/terraform-configuration.md
-      - Terraform Hetzner Setup: iac/terraform-hetzner-setup.md
-      - Terraform Secrets Management: iac/terraform-secrets-management.md
+  - Exercises: Exercises/
+  - iac: iac/
 theme:
   name: material
   features:
