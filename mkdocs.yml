@@ -38,6 +38,7 @@ theme:
 
 # Extensions
 markdown_extensions:
+  - sane_lists
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
