@@ -1,4 +1,4 @@
-# SSH Port Forwarding
+# 7 - SSH Port Forwarding
 To bypass a firewall that filters everything besides ssh on port 22, you can enable ssh port forwarding if you want to, for example, access an nginx serer using HTTP(S).
 This way you can tunnel port 80 traffic through 22, by doing the following on your system with the firewall (HostB):
 ```bash

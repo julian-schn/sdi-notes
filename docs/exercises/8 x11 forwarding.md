@@ -1,4 +1,4 @@
-# x11 Forwarding
+# 8 - x11 Forwarding
 x11 Forwarding allows you to run a program with a GUI on remote machine and have it be displayed on your local machine. 
 
 Given for remote host:
