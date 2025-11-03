@@ -3,7 +3,7 @@
 # Encrypt: sops -e -i terraform.tfvars
 # Decrypt: sops -d terraform.tfvars
 
-# Non-sensitive configuration (can be plain text)
+# Non-sensitive configuration
 server_base_name = "server"
 server_type      = "cx22"
 server_image     = "debian-12"

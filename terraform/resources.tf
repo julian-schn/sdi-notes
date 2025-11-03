@@ -11,7 +11,7 @@ resource "hcloud_ssh_key" "primary" {
   }
 }
 
-# Secondary SSH Key Resource (optional)
+# Secondary SSH Key Resource
 resource "hcloud_ssh_key" "secondary" {
   count      = var.ssh_public_key_secondary != "" ? 1 : 0
   name       = "${var.project}-secondary-ssh-key"
@@ -98,7 +98,7 @@ resource "hcloud_server" "main_server" {
   server_type = var.server_type
   location    = var.location
 
-  # SSH Keys (primary + secondary if provided)
+  # SSH Keys primary + secondary if provided
   ssh_keys = concat(
     [hcloud_ssh_key.primary.id],
     var.ssh_public_key_secondary != "" ? [hcloud_ssh_key.secondary[0].id] : []
@@ -127,7 +127,7 @@ resource "hcloud_server" "main_server" {
     server_type = var.server_type
   }
 
-  # User data for initial server setup (inline for simplicity)
+  # User data for initial server setup
   user_data = <<-EOF
     #!/bin/bash
     # Update system packages

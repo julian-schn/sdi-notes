@@ -51,7 +51,7 @@ terraform.rc
 terraform.tfplan
 terraform.tfplan.*
 
-# Terraform example files (keep these)
+# Terraform example files
 !terraform.tfvars.example
 !.env.example
 
