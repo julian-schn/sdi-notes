@@ -7,7 +7,27 @@ repo_name: sdi-notes
 repo_url: https://github.com/julian-schn/sdi-notes
 
 # Configuration
-# nav is handled by awesome-pages plugin
+nav:
+  - Home: index.md
+  - Exercises:
+      - Overview: Exercises/index.md
+      - 06 - SSH Agent Forwarding: Exercises/06 ssh hopping.md
+      - 07 - SSH Port Forwarding: Exercises/07 ssh port forwarding.md
+      - 08 - X11 Forwarding: Exercises/08 x11 forwarding.md
+      - 09 - Directory transfer with rsync and ssh: Exercises/09 rsync.md
+      - 10 - Index based search: Exercises/10 index based search.md
+      - 11 - tail -f: Exercises/11 tail.md
+      - 12 - journalctl: Exercises/12 journalctl.md
+      - 13 - Incrementally creating a base system: Exercises/13 incrementally creating base system.md
+      - 14 - Auto nginx installation: Exercises/14 auto nginx installation.md
+  - IaC:
+      - Overview: iac/index.md
+      - Introduction: iac/introduction.md
+      - Terraform Install: iac/terraform-install.md
+      - Terraform Basics: iac/terraform-basics.md
+      - Terraform Configuration: iac/terraform-configuration.md
+      - Terraform Hetzner Setup: iac/terraform-hetzner-setup.md
+      - Terraform Secrets Management: iac/terraform-secrets-management.md
 theme:
   name: material
   features:
@@ -65,7 +85,6 @@ markdown_extensions:
 # Plugins
 plugins:
   - search
-  - awesome-pages
   - git-revision-date-localized:
       enable_creation_date: true
 
