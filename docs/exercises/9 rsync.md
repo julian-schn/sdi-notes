@@ -4,6 +4,7 @@ With ``rsync`` you can synchronize directories between two machines. It only cop
 When combined with SSH, it encrypts data in transit and uses SSH authentication.
 
 - Install with 
+
 ```bash
 sudo apt install rsync
 ````
