@@ -70,6 +70,9 @@ plugins:
       enable_creation_date: true
 
 # Extra
+extra_css:
+  - stylesheets/overrides.css
+
 extra:
   social:
     - icon: fontawesome/brands/github
