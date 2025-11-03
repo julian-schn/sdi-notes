@@ -7,24 +7,20 @@ When combined with SSH, it encrypts data in transit and uses SSH authentication.
     ```bash
     sudo apt install rsync
     ```
-
 1. Copy local directory to remote host
     ```bash
     rsync -avz -e ssh ~/projects/mylocaldir/ user@remotehost:~/backup/
     ```
-
 2. Run again
     ```bash
     rsync -avz -e ssh ~/projects/mylocaldir/ user@remotehost:~/backup/
     ```
-
 3. rsync compares directories and syncs possible changes. Here:
     ```bash
     sending incremental file list
 
     sent 123 bytes  received 45 bytes  total size 0
     ```
-
 4. Changes on remote host
     - ssh into remote host, add new file into ``/backup/mylocaldir/```
     - log out and run above command on local machine again
