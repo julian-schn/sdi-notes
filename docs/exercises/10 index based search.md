@@ -1,5 +1,5 @@
 # 10 - Index based search
-1. install ``plocate```
+1. install ``plocate``
 ```bash
 sudo apt install plocate
 ````
