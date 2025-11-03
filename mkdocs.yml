@@ -10,15 +10,15 @@ repo_url: https://github.com/julian-schn/sdi-notes
 nav:
   - Home: index.md
   - Exercises:
-      - 06 - SSH Agent Forwarding: Exercises/06 ssh hopping.md
-      - 07 - SSH Port Forwarding: Exercises/07 ssh port forwarding.md
-      - 08 - X11 Forwarding: Exercises/08 x11 forwarding.md
-      - 09 - Directory transfer with rsync and ssh: Exercises/09 rsync.md
-      - 10 - Index based search: Exercises/10 index based search.md
-      - 11 - tail -f: Exercises/11 tail.md
-      - 12 - journalctl: Exercises/12 journalctl.md
-      - 13 - Incrementally creating a base system: Exercises/13 incrementally creating base system.md
-      - 14 - Auto nginx installation: Exercises/14 auto nginx installation.md
+      - 06 - SSH Agent Forwarding: exercises/06 ssh hopping.md
+      - 07 - SSH Port Forwarding: exercises/07 ssh port forwarding.md
+      - 08 - X11 Forwarding: exercises/08 x11 forwarding.md
+      - 09 - Directory transfer with rsync and ssh: exercises/09 rsync.md
+      - 10 - Index based search: exercises/10 index based search.md
+      - 11 - tail -f: exercises/11 tail.md
+      - 12 - journalctl: exercises/12 journalctl.md
+      - 13 - Incrementally creating a base system: exercises/13 incrementally creating base system.md
+      - 14 - Auto nginx installation: exercises/14 auto nginx installation.md
   - IaC:
       - Overview: iac/index.md
       - Introduction: iac/introduction.md
