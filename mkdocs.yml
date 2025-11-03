@@ -10,7 +10,6 @@ repo_url: https://github.com/julian-schn/sdi-notes
 nav:
   - Home: index.md
   - Exercises:
-      - Overview: Exercises/index.md
       - 06 - SSH Agent Forwarding: Exercises/06 ssh hopping.md
       - 07 - SSH Port Forwarding: Exercises/07 ssh port forwarding.md
       - 08 - X11 Forwarding: Exercises/08 x11 forwarding.md
