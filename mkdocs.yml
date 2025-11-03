@@ -7,10 +7,7 @@ repo_name: sdi-notes
 repo_url: https://github.com/julian-schn/sdi-notes
 
 # Configuration
-nav:
-  - Home: index.md
-  - Exercises: Exercises/
-  - IaC: iac/
+# nav is handled by awesome-pages plugin
 theme:
   name: material
   features:
