@@ -7,7 +7,7 @@ When combined with SSH, it encrypts data in transit and uses SSH authentication.
 
 ```bash
 sudo apt install rsync
-````
+```
 
 1. Copy local directory to remote host
 
