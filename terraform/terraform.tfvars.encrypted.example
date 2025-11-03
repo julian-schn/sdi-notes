@@ -1,0 +1,16 @@
+# Encrypted terraform.tfvars example using sops
+# Install: brew install sops age
+# Encrypt: sops -e -i terraform.tfvars
+# Decrypt: sops -d terraform.tfvars
+
+# Non-sensitive configuration
+server_base_name = "server"
+server_type      = "cx22"
+server_image     = "debian-12"
+location         = "nbg1"
+environment      = "development"
+project          = "hello-world"
+
+# Sensitive data (would be encrypted by sops)
+ssh_public_key           = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHoKFFTFmJR1CSAq55TwXHbUPTxSK847qZL0W6r/ZUV9 luca@macbook"
+ssh_public_key_secondary = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB... team@company"
