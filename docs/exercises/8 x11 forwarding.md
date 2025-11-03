@@ -16,7 +16,7 @@ sudo ufw deny 443
 
 ```bash
 sudo apt install xauth
-````
+```
 
 3. Log in again with x11 forwarding
 

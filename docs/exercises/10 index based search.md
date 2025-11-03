@@ -3,7 +3,7 @@
 
 ```bash
 sudo apt install plocate
-````
+```
 
 2.  build index
 
