@@ -14,10 +14,12 @@ sudo ufw deny 443
 ```bash
 sudo apt install xauth
 ````
+
 3. Log in again with x11 forwarding
 ```bash
 ssh -Y user@hostA
 ```
+
 4. Install Firefox on remote host and run, open a random website
 ```bash
 sudo apt install firefox-esr
