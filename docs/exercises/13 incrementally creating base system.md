@@ -1,4 +1,4 @@
-# Incrementally creating a base system
+# 13 - Incrementally creating a base system
 - Automatically create servers on Hetzner Cloud using Terraform
 
 1. Start with minimal Terraform config (example):
