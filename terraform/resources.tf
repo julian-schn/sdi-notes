@@ -70,6 +70,26 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
+  rule {
+    direction = "in"
+    port      = "80"
+    protocol  = "tcp"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+
+  rule {
+    direction = "in"
+    port      = "443"
+    protocol  = "tcp"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+
   labels = {
     environment = var.environment
     project     = var.project
@@ -127,24 +147,26 @@ resource "hcloud_server" "main_server" {
     server_type = var.server_type
   }
 
-  # User data for initial server setup
-  user_data = <<-EOF
+    # User data for initial server setup
+    user_data = <<-EOF
     #!/bin/bash
     # Update system packages
     apt-get update && apt-get upgrade -y
     
-    # Install essential packages
-    apt-get install -y curl wget git htop vim ufw
+    apt-get install -y curl wget git htop vim ufw nginx
     
-    # Configure firewall
     ufw default deny incoming
     ufw default allow outgoing
     ufw allow ssh
+    ufw allow 'Nginx Full'
     ufw --force enable
     
-    # Log completion
-    echo "$(date): Server initialization completed" >> /var/log/user-data.log
+    systemctl start nginx
+    systemctl enable nginx
+    
+    echo "$(date): Server initialization completed with Nginx" >> /var/log/user-data.log
   EOF
+
 
   # Lifecycle management
   lifecycle {
