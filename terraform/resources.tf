@@ -40,6 +40,17 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
+  # HTTP access
+  rule {
+    direction = "in"
+    port      = "80"
+    protocol  = "tcp"
+    source_ips = [
+      "0.0.0.0/0",
+      "::/0"
+    ]
+  }
+
   # Allow all outbound traffic
   rule {
     direction = "out"
@@ -89,6 +100,10 @@ locals {
   ]
   next_server_number = length(local.existing_server_numbers) > 0 ? max(local.existing_server_numbers...) + 1 : 1
   server_name        = "${var.server_base_name}-${local.next_server_number}"
+  ssh_authorized_keys = concat(
+    [var.ssh_public_key],
+    var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
+  )
 }
 
 # Hetzner Cloud Server Resource
@@ -128,23 +143,10 @@ resource "hcloud_server" "main_server" {
   }
 
   # User data for initial server setup
-  user_data = <<-EOF
-    #!/bin/bash
-    # Update system packages
-    apt-get update && apt-get upgrade -y
-    
-    # Install essential packages
-    apt-get install -y curl wget git htop vim ufw
-    
-    # Configure firewall
-    ufw default deny incoming
-    ufw default allow outgoing
-    ufw allow ssh
-    ufw --force enable
-    
-    # Log completion
-    echo "$(date): Server initialization completed" >> /var/log/user-data.log
-  EOF
+  user_data = templatefile("${path.module}/cloud-init.yaml", {
+    server_name      = local.server_name
+    ssh_public_keys  = local.ssh_authorized_keys
+  })
 
   # Lifecycle management
   lifecycle {
