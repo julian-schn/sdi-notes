@@ -19,6 +19,7 @@ nav:
       - 12 - journalctl: exercises/12 journalctl.md
       - 13 - Incrementally creating a base system: exercises/13 incrementally creating base system.md
       - 14 - Auto nginx installation: exercises/14 auto nginx installation.md
+      - 15 - Cloud Init: exercises/15 - cloud init.md
   - IaC:
       - Overview: iac/index.md
       - Introduction: iac/introduction.md
