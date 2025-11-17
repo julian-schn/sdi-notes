@@ -2,8 +2,9 @@
 1. switch Terraform server `user_data` to a cloud-init template to bootstrap everything in one go:
 ```hcl
 user_data = templatefile("${path.module}/cloud-init.yaml", {
-  server_name     = local.server_name
-  ssh_public_keys = concat([var.ssh_public_key], var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : [])
+  server_name      = local.server_name
+  ssh_public_keys  = concat([var.ssh_public_key], var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : [])
+  devops_username  = var.devops_username # defaults to "devops"
 })
 ```
 2. example `cloud-init.yaml` (Debian 12) that updates the OS, serves a custom page via Nginx, hardens SSH, and installs tooling:
@@ -18,7 +19,7 @@ disable_root: true
 packages: [nginx, ufw, fail2ban, plocate]
 users:
   - default
-  - name: devops
+  - name: ${devops_username}
     groups: [sudo]
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     lock_passwd: true

@@ -146,11 +146,57 @@ resource "hcloud_server" "main_server" {
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     server_name      = local.server_name
     ssh_public_keys  = local.ssh_authorized_keys
+    devops_username  = var.devops_username
   })
 
   # Lifecycle management
   lifecycle {
     create_before_destroy = true
     prevent_destroy       = false
+  }
+}
+
+# Helper script: ssh wrapper using generated known_hosts
+resource "local_file" "ssh_wrapper" {
+  depends_on = [hcloud_server.main_server]
+
+  content = templatefile("${path.module}/tpl/ssh.sh", {
+    devopsUsername = var.devops_username
+    ip             = hcloud_server.main_server.ipv4_address
+  })
+
+  filename             = "${path.module}/bin/ssh"
+  file_permission      = "0755"
+  directory_permission = "0755"
+}
+
+# Helper script: scp wrapper using generated known_hosts
+resource "local_file" "scp_wrapper" {
+  depends_on = [hcloud_server.main_server]
+
+  content = templatefile("${path.module}/tpl/scp.sh", {
+    devopsUsername = var.devops_username
+    ip             = hcloud_server.main_server.ipv4_address
+  })
+
+  filename             = "${path.module}/bin/scp"
+  file_permission      = "0755"
+  directory_permission = "0755"
+}
+
+# Generate gen/known_hosts from the created server's host key
+resource "null_resource" "known_hosts" {
+  depends_on = [hcloud_server.main_server]
+
+  triggers = {
+    server_ip = hcloud_server.main_server.ipv4_address
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -euo pipefail
+      mkdir -p "${path.module}/gen"
+      ssh-keyscan -t ed25519 ${hcloud_server.main_server.ipv4_address} > "${path.module}/gen/known_hosts"
+    EOT
   }
 }

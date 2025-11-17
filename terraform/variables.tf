@@ -62,3 +62,14 @@ variable "project" {
   type        = string
   default     = "hello-world"
 }
+
+variable "devops_username" {
+  description = "Username for the DevOps account created via cloud-init and used by helper scripts"
+  type        = string
+  default     = "devops"
+
+  validation {
+    condition     = length(trim(var.devops_username)) > 0
+    error_message = "devops_username must not be empty."
+  }
+}

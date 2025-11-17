@@ -20,6 +20,7 @@ nav:
       - 13 - Incrementally creating a base system: exercises/13 incrementally creating base system.md
       - 14 - Auto nginx installation: exercises/14 auto nginx installation.md
       - 15 - Cloud Init: exercises/15 - cloud init.md
+      - 16 - Solving the known_hosts quirk: exercises/16 - solving the known_hosts quirk.md
   - IaC:
       - Overview: iac/index.md
       - Introduction: iac/introduction.md

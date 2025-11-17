@@ -22,7 +22,7 @@ disable_root: true
 
 users:
   - default
-  - name: devops
+  - name: ${devops_username}
     gecos: DevOps User
     groups: [sudo]
     sudo: "ALL=(ALL) NOPASSWD:ALL"

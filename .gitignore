@@ -40,6 +40,8 @@ ENV/
 *.tfvars.json
 .terraform/
 .terraform.lock.hcl
+terraform/bin/
+terraform/gen/
 crash.log
 crash.*.log
 override.tf
