@@ -1,6 +1,8 @@
 # 8 - x11 Forwarding
 x11 Forwarding allows you to run a program with a GUI on remote machine and have it be displayed on your local machine. 
 
+TLDR: `ssh -Y user@host` forwards X11 so GUI apps launched remotely (e.g., `firefox &`) render on your local display; ensure xauth installed and firewall only allows SSH.
+
 Given for remote host:
 - Only allows ssh, runs nginx, x11 forwarding is to be used
 

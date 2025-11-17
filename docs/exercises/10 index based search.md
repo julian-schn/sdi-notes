@@ -1,4 +1,6 @@
 # 10 - Index based search
+TLDR: install `plocate`, run `updatedb` once, then `locate <pattern>` for instant filename search; rerun `updatedb` after file changes.
+
 1. install ``plocate``
     ```bash
     sudo apt install plocate

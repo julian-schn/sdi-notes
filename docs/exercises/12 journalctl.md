@@ -4,4 +4,4 @@ Unlike ``/var/log/*.log`` files, these logs are stored in a binary journal that 
 - ``tail -f`` just watches a specific text log file
 - ``journalctl -f`` watches systemd’s central log system (includes all services, structured, searchable).
 
-
+TLDR: use `journalctl -f` to follow all systemd-managed logs live, or `journalctl -u service` for a specific unit.

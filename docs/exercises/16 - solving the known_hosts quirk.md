@@ -1,6 +1,11 @@
 # 16 - Solving the ~/.ssh/known_hosts quirk
 - Goal: generate per-deployment SSH known_hosts and wrapper scripts so `ssh`/`scp` work without global known_hosts prompts.
 
+TLDR:
+- Terraform fetches the server’s SSH host key and writes it to `terraform/gen/known_hosts`.
+- Terraform renders `terraform/bin/ssh` and `terraform/bin/scp` from templates, pointing them at that file.
+- You run `./terraform/bin/ssh` or `./terraform/bin/scp` and never touch your global `~/.ssh/known_hosts`.
+
 1) Add templates (Terraform module-relative):
 ```bash
 # tpl/ssh.sh

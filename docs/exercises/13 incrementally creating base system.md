@@ -1,6 +1,8 @@
 # 13 - Incrementally creating a base system
 - Automatically create servers on Hetzner Cloud using Terraform
 
+TLDR: start with a minimal hcloud server + firewall + outputs; store the API token in tfvars/ENV, add your SSH key to avoid passwords, then `terraform apply` to create and inspect the server.
+
 1. Start with minimal Terraform config (example):
 ```hcl
 terraform {

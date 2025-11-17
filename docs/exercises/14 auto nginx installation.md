@@ -1,4 +1,6 @@
 # 14 - Automatic Nginx installation 
+TLDR: write a small bash script that installs/enables nginx, then point Terraform `user_data` at it so new servers come up serving HTTP automatically.
+
 1. create a ``nginx_setup-sh``, If it runs successfully and Nginx starts (``systemctl`` status ``nginx`` shows it active), you know your script is good.
 ```bash
 #!/bin/bash

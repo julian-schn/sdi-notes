@@ -1,4 +1,6 @@
 # 15 - Cloud Init
+TLDR: replace inline bash with a cloud-init template that updates the OS, hardens SSH, installs nginx/fail2ban/plocate, renders a landing page, and opens port 80; apply via Terraform.
+
 1. switch Terraform server `user_data` to a cloud-init template to bootstrap everything in one go:
 ```hcl
 user_data = templatefile("${path.module}/cloud-init.yaml", {
