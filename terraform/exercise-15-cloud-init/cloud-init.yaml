@@ -1,0 +1,116 @@
+#cloud-config
+# Exercise 15 - Cloud-init Configuration
+# This file is templated by Terraform and runs on first boot
+
+hostname: ${server_name}
+fqdn: ${server_name}
+
+# Update and upgrade packages on first boot
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+# Install essential packages
+packages:
+  - nginx
+  - ufw
+  - fail2ban
+  - curl
+  - wget
+  - git
+  - htop
+  - vim
+  - plocate
+
+# Disable SSH password authentication
+ssh_pwauth: false
+# Disable root login (use devops user instead)
+disable_root: true
+
+# Create users
+users:
+  - default
+  - name: ${devops_username}
+    gecos: DevOps User
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    shell: /bin/bash
+    lock_passwd: true
+    ssh_authorized_keys:
+%{~ for key in ssh_public_keys ~}
+      - ${key}
+%{~ endfor ~}
+
+# Write configuration files
+write_files:
+  # SSH hardening configuration
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    owner: root:root
+    permissions: "0644"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+      ChallengeResponseAuthentication no
+      UsePAM yes
+
+  # Fail2ban configuration
+  - path: /etc/fail2ban/jail.local
+    owner: root:root
+    permissions: "0644"
+    content: |
+      [DEFAULT]
+      bantime = 10m
+      findtime = 10m
+      maxretry = 5
+      backend = systemd
+      banaction = ufw
+      banaction_allports = ufw
+      ignoreip = 127.0.0.1/8 ::1
+
+      [sshd]
+      enabled = true
+      port = ssh
+      logpath = %(sshd_log)s
+
+  # Script to render custom Nginx landing page
+  - path: /usr/local/bin/render-index.sh
+    owner: root:root
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      ip=$(hostname -I | awk '{print $1}')
+      ts=$(date -u +"%a %b %e %I:%M:%S %p %Z %Y")
+      echo "I'm Nginx @ \"$ip\" created $ts" > /var/www/html/index.html
+
+# Commands to run on first boot
+runcmd:
+  # Final system upgrade
+  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
+
+  # Reload and restart SSH with new configuration
+  - [systemctl, daemon-reload]
+  - [systemctl, restart, ssh]
+
+  # Configure UFW firewall
+  - [bash, -lc, "ufw default deny incoming"]
+  - [bash, -lc, "ufw default allow outgoing"]
+  - [bash, -lc, "ufw allow 22/tcp"]
+  - [bash, -lc, "ufw allow 80/tcp"]
+  - [bash, -lc, "ufw --force enable"]
+
+  # Enable and start Nginx
+  - [systemctl, enable, --now, nginx]
+
+  # Enable and start Fail2ban
+  - [systemctl, enable, --now, fail2ban]
+
+  # Render custom landing page
+  - [bash, -lc, "/usr/local/bin/render-index.sh"]
+
+  # Restart Fail2ban to pick up configuration
+  - [systemctl, restart, fail2ban]
+
+  # Enable and run plocate database update
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
+  - [bash, -lc, "plocate-updatedb"]

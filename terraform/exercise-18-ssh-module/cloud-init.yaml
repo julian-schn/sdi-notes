@@ -1,0 +1,49 @@
+#cloud-config
+hostname: ${server_name}
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+ssh_pwauth: false
+disable_root: true
+packages: [nginx, ufw, fail2ban, plocate]
+users:
+  - default
+  - name: ${devops_username}
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+%{~ for key in ssh_public_keys ~}
+      - ${key}
+%{~ endfor ~}
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      banaction = ufw
+      backend = systemd
+      maxretry = 5
+      findtime = 10m
+      bantime = 10m
+      ignoreip = 127.0.0.1/8 ::1
+      [sshd]
+      enabled = true
+  - path: /usr/local/bin/render-index.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      ip=$(hostname -I | awk '{print $1}')
+      ts=$(date -u +"%a %b %e %I:%M:%S %p %Z %Y")
+      echo "I'm Nginx @ \"$ip\" created $ts" > /var/www/html/index.html
+runcmd:
+  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
+  - [systemctl, restart, ssh]
+  - [bash, -lc, "ufw default deny incoming; ufw default allow outgoing; ufw allow 22/tcp; ufw allow 80/tcp; ufw --force enable"]
+  - [systemctl, enable, --now, nginx]
+  - [bash, -lc, "/usr/local/bin/render-index.sh"]
+  - [systemctl, enable, --now, fail2ban]
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; plocate-updatedb"]
