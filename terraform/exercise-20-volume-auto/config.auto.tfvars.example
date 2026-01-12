@@ -1,0 +1,10 @@
+# config.auto.tfvars.example - Exercise 20: Volume Auto
+# Copy to config.auto.tfvars and customize values
+
+server_name     = "volume-auto-server"
+server_type     = "cx23"
+server_image    = "debian-13"
+location        = "nbg1"
+devops_username = "devops"
+environment     = "development"
+project         = "volume-auto-demo"

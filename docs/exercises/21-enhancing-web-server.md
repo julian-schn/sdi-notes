@@ -2,33 +2,93 @@
 
 > **Working Code:** [`terraform/exercise-21-enhancing-web-server/`](../../terraform/exercise-21-enhancing-web-server/)
 
-## Goal
-Enhance your web server from "Improve your server's security!" by adding DNS records and enabling TLS with Let's Encrypt.
+- Goal: Add DNS records and enable TLS with Let's Encrypt for your web server.
 
-## Tasks
+## DNS Configuration
 
-### 1. DNS Configuration
-Provide DNS »A« records pointing to your server's IP address for:
+Provide DNS «A» records pointing to your server's IP address for:
 
-- `http://www.g02.sdi.hdm-stuttgart.cloud`
-- `http://g02.sdi.hdm-stuttgart.cloud`
+- `http://www.g2.sdi.hdm-stuttgart.cloud`
+- `http://g2.sdi.hdm-stuttgart.cloud`
 
-### 2. TLS Configuration
-Follow "How To Secure Nginx with Let's Encrypt on Debian 11" and configure TLS allowing for access by both:
+### Provider Setup
 
-- `https://www.g02.sdi.hdm-stuttgart.cloud`
-- `https://g02.sdi.hdm-stuttgart.cloud`
+The `hashicorp/dns` provider uses TSIG authentication with the HDM Stuttgart nameserver:
 
-**Important constraints:**
-- **Firewall**: Omit the firewall related steps. You already have a Hetzner firewall rule set in place.
-- **Rate Limits**: Avoid becoming a Letsencrypt rate limit victim. Use the staging environment first.
+```hcl
+provider "dns" {
+  update {
+    server        = "ns1.sdi.hdm-stuttgart.cloud"
+    key_name      = "g2.key."
+    key_algorithm = "hmac-sha512"
+    key_secret    = var.dns_secret
+  }
+}
+```
 
-### 3. Staging Certificate
-Use the `--staging` (or `--test-cert`) option to validate your configuration first.
-Let's Encrypt's staging environment is far more lenient (e.g., a failed validation limit of 60 per hour versus 5).
+> **Note:** The `key_secret` is the base64-encoded part of your HMAC key from `dnsupdate.sec`, not the full `hmac-sha512:g2.key:...` string.
 
-- Staging ACME URL: `https://acme-staging-v02.api.letsencrypt.org/directory`
-- Production ACME URL: `https://acme-v02.api.letsencrypt.org/directory`
+### Apex Record Workaround
 
-### 4. Production Certificate
-After successfully creating, installing, and testing your Letsencrypt staging certificate, re-create your certificate omitting the `--staging` option to get a valid certificate.
+The `hashicorp/dns` provider doesn't support apex/root zone records (using `@` or empty name). Use a `null_resource` with `nsupdate` as a workaround:
+
+```hcl
+resource "null_resource" "dns_root" {
+  triggers = {
+    server_ip = hcloud_server.web_server.ipv4_address
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "server ns1.sdi.hdm-stuttgart.cloud
+      update add ${var.project}.sdi.hdm-stuttgart.cloud. 10 A ${hcloud_server.web_server.ipv4_address}
+      send" | nsupdate -y "hmac-sha512:${var.project}.key:${var.dns_secret}"
+    EOT
+  }
+}
+```
+
+## TLS Configuration
+
+Follow "How To Secure Nginx with Let's Encrypt on Debian" and configure TLS for both domains.
+
+**Important:**
+
+- **Firewall**: Skip firewall steps—you already have a Hetzner firewall.
+- **Rate Limits**: Use staging first to avoid Let's Encrypt rate limits.
+
+## Verification
+
+1. **Apply Terraform**:
+
+   ```bash
+   source ../.env
+   terraform apply
+   ```
+
+2. **Wait for cloud-init** (~2-3 minutes):
+
+   ```bash
+   ssh devops@g2.sdi.hdm-stuttgart.cloud "sudo cloud-init status --wait"
+   ```
+
+3. **Get staging certificate** (test first):
+
+   ```bash
+   sudo certbot --nginx -d g2.sdi.hdm-stuttgart.cloud -d www.g2.sdi.hdm-stuttgart.cloud --staging
+   ```
+
+4. **Get production certificate**:
+
+   ```bash
+   sudo certbot --nginx -d g2.sdi.hdm-stuttgart.cloud -d www.g2.sdi.hdm-stuttgart.cloud --force-renewal
+   ```
+
+5. **Verify HTTPS**:
+
+   ```bash
+   curl -I https://g2.sdi.hdm-stuttgart.cloud
+   curl -I https://www.g2.sdi.hdm-stuttgart.cloud
+   ```
+
+Both should return `HTTP/1.1 200 OK` with a valid TLS connection.

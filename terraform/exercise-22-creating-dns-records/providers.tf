@@ -1,14 +1,27 @@
+# Exercise 22 - Creating DNS Records
+# Uses hashicorp/dns provider to create A and CNAME records on HDM Stuttgart DNS server
+
 terraform {
   required_version = ">= 1.0"
 
   required_providers {
-    hetznerdns = {
-      source  = "timohirt/hetznerdns"
-      version = "2.2.0"
+    dns = {
+      source  = "hashicorp/dns"
+      version = "~> 3.4"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
     }
   }
 }
 
-provider "hetznerdns" {
-  # Token should be provided via HETZNER_DNS_TOKEN env var
+# Configure the DNS provider for HDM Stuttgart DNS server
+provider "dns" {
+  update {
+    server        = "ns1.sdi.hdm-stuttgart.cloud"
+    key_name      = "${var.project}.key."
+    key_algorithm = "hmac-sha512"
+    key_secret    = var.dns_secret
+  }
 }

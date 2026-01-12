@@ -9,7 +9,7 @@ variable "server_name" {
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx22"
+  default     = "cx23"
 }
 
 variable "server_image" {

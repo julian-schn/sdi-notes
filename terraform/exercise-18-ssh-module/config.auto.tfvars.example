@@ -1,0 +1,10 @@
+# config.auto.tfvars.example - Exercise 18: SSH Module
+# Copy to config.auto.tfvars and customize values
+
+server_name     = "ssh-module-server"
+server_type     = "cx23"
+server_image    = "debian-13"
+location        = "nbg1"
+devops_username = "devops"
+environment     = "development"
+project         = "ssh-module-demo"

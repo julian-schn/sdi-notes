@@ -24,25 +24,8 @@ resource "hcloud_ssh_key" "primary" {
   public_key = var.ssh_public_key
 }
 
-# Data source to lookup existing firewalls
-data "hcloud_firewalls" "existing" {
-  with_selector = "managed_by=terraform"
-}
-
-# Local to determine if we should create a new firewall
-locals {
-  # Try to find existing SSH firewall by name
-  existing_firewall = try(
-    one([for fw in data.hcloud_firewalls.existing.firewalls : fw if fw.name == "allow-ssh"]),
-    null
-  )
-  should_create_firewall = local.existing_firewall == null
-}
-
-# Firewall Resource - Allow SSH (created only if it doesn't exist)
+# Firewall Resource - Allow SSH
 resource "hcloud_firewall" "ssh" {
-  count = local.should_create_firewall ? 1 : 0
-  
   name = "allow-ssh"
 
   # SSH access
@@ -82,11 +65,6 @@ resource "hcloud_firewall" "ssh" {
   }
 }
 
-# Local to reference either existing or newly created firewall
-locals {
-  firewall_id = local.should_create_firewall ? hcloud_firewall.ssh[0].id : local.existing_firewall.id
-}
-
 # Hetzner Cloud Server Resource
 resource "hcloud_server" "hello_server" {
   name        = var.server_name
@@ -98,7 +76,7 @@ resource "hcloud_server" "hello_server" {
   ssh_keys = [hcloud_ssh_key.primary.id]
 
   # Firewall
-  firewall_ids = [local.firewall_id]
+  firewall_ids = [hcloud_firewall.ssh.id]
 
   # Public network
   public_net {

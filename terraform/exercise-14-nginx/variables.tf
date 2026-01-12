@@ -9,7 +9,7 @@ variable "server_name" {
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx22"
+  default     = "cx23"
 }
 
 variable "server_image" {
@@ -35,4 +35,10 @@ variable "ssh_public_key" {
   description = "SSH public key for server access"
   type        = string
   # Must be provided via terraform.tfvars or environment variable
+}
+
+variable "ssh_public_key_secondary" {
+  description = "Secondary SSH public key for server access (optional)"
+  type        = string
+  default     = ""
 }

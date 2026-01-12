@@ -6,9 +6,13 @@ terraform {
       source  = "hetznercloud/hcloud"
       version = "~> 1.46"
     }
-    hetznerdns = {
-      source = "timohirt/hetznerdns"
-      version = "2.2.0"
+    dns = {
+      source  = "hashicorp/dns"
+      version = "~> 3.4"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
     }
   }
 }
@@ -18,7 +22,12 @@ provider "hcloud" {
   # Token should be provided via HCLOUD_TOKEN env var
 }
 
-# Configure the Hetzner DNS Provider
-provider "hetznerdns" {
-  # Token should be provided via HETZNER_DNS_TOKEN env var
+# Configure the HDM Stuttgart DNS Provider
+provider "dns" {
+  update {
+    server        = "ns1.sdi.hdm-stuttgart.cloud"
+    key_name      = "g2.key."
+    key_algorithm = "hmac-sha512"
+    key_secret    = var.dns_secret
+  }
 }

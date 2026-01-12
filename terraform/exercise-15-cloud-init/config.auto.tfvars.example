@@ -1,0 +1,10 @@
+# config.auto.tfvars.example - Exercise 15: Cloud-init
+# Copy to config.auto.tfvars and customize values
+
+server_name     = "cloud-init-server"
+server_type     = "cx23"
+server_image    = "debian-13"
+location        = "nbg1"
+devops_username = "devops"
+environment     = "development"
+project         = "cloud-init-demo"

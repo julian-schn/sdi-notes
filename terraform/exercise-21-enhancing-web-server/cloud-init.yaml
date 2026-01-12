@@ -22,9 +22,9 @@ users:
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     lock_passwd: true
     ssh_authorized_keys:
-%{~ for key in ssh_public_keys ~}
+%{ for key in ssh_public_keys }
       - ${key}
-%{~ endfor ~}
+%{ endfor }
 
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf

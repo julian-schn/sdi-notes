@@ -23,25 +23,22 @@ resource "hcloud_ssh_key" "primary" {
   public_key = var.ssh_public_key
 }
 
-# Data source to lookup existing firewalls
-data "hcloud_firewalls" "existing" {
-  with_selector = "managed_by=terraform"
+# Secondary SSH Key (optional)
+resource "hcloud_ssh_key" "secondary" {
+  count      = var.ssh_public_key_secondary != "" ? 1 : 0
+  name       = "ssh-key-secondary"
+  public_key = var.ssh_public_key_secondary
 }
 
-# Local to determine if we should create a new firewall
+# Collect all SSH key IDs
 locals {
-  # Try to find existing web server firewall by name
-  existing_firewall = try(
-    one([for fw in data.hcloud_firewalls.existing.firewalls : fw if fw.name == "allow-ssh-http"]),
-    null
+  ssh_key_ids = concat(
+    [hcloud_ssh_key.primary.id],
+    var.ssh_public_key_secondary != "" ? [hcloud_ssh_key.secondary[0].id] : []
   )
-  should_create_firewall = local.existing_firewall == null
 }
-
-# Firewall Resource - Allow SSH and HTTP (created only if it doesn't exist)
+# Firewall Resource - Allow SSH and HTTP
 resource "hcloud_firewall" "web_server" {
-  count = local.should_create_firewall ? 1 : 0
-  
   name = "allow-ssh-http"
 
   # SSH access
@@ -92,11 +89,6 @@ resource "hcloud_firewall" "web_server" {
   }
 }
 
-# Local to reference either existing or newly created firewall
-locals {
-  firewall_id = local.should_create_firewall ? hcloud_firewall.web_server[0].id : local.existing_firewall.id
-}
-
 # Hetzner Cloud Server Resource with Nginx
 resource "hcloud_server" "nginx_server" {
   name        = var.server_name
@@ -104,11 +96,11 @@ resource "hcloud_server" "nginx_server" {
   server_type = var.server_type
   location    = var.location
 
-  # SSH Key
-  ssh_keys = [hcloud_ssh_key.primary.id]
+  # SSH Keys (primary + optional secondary)
+  ssh_keys = local.ssh_key_ids
 
   # Firewall (now includes HTTP)
-  firewall_ids = [local.firewall_id]
+  firewall_ids = [hcloud_firewall.web_server.id]
 
   # Public network
   public_net {

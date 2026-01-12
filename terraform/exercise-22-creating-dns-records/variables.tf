@@ -1,7 +1,17 @@
 variable "dns_zone" {
-  description = "The DNS zone name to add records to"
+  description = "The DNS zone name (e.g., g2.sdi.hdm-stuttgart.cloud)"
   type        = string
-  default     = "g02.sdi.hdm-stuttgart.cloud" 
+}
+
+variable "project" {
+  description = "Project/group name for DNS key (e.g., g2)"
+  type        = string
+}
+
+variable "dns_secret" {
+  description = "HMAC-SHA512 secret for HDM Stuttgart DNS"
+  type        = string
+  sensitive   = true
 }
 
 variable "server_ip" {
@@ -23,11 +33,6 @@ variable "server_aliases" {
 
   validation {
     condition     = length(distinct(var.server_aliases)) == length(var.server_aliases)
-    error_message = "Duplicate server alias names found."
-  }
-
-  validation {
-    condition     = !contains(var.server_aliases, var.server_name)
-    error_message = "Server alias name matches server's common name."
+    error_message = "Duplicate server alias names found. Each alias must be unique."
   }
 }

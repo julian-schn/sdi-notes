@@ -42,25 +42,8 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# Data source to lookup existing firewalls with matching labels
-data "hcloud_firewalls" "existing" {
-  with_selector = "project=${var.project},managed_by=terraform"
-}
-
-# Local to determine if we should create a new firewall
-locals {
-  # Try to find existing firewall by name
-  existing_firewall = try(
-    one([for fw in data.hcloud_firewalls.existing.firewalls : fw if fw.name == "${var.project}-firewall"]),
-    null
-  )
-  should_create_firewall = local.existing_firewall == null
-}
-
-# Create firewall only if it doesn't exist
+# Firewall for this exercise
 resource "hcloud_firewall" "server_firewall" {
-  count = local.should_create_firewall ? 1 : 0
-  
   name = "${var.project}-firewall"
 
   # SSH access
@@ -113,11 +96,6 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Local to reference either existing or newly created firewall
-locals {
-  firewall_id = local.should_create_firewall ? hcloud_firewall.server_firewall[0].id : local.existing_firewall.id
-}
-
 # Local values
 locals {
   ssh_authorized_keys = concat(
@@ -137,6 +115,10 @@ resource "hcloud_volume" "data_volume" {
     environment = var.environment
     project     = var.project
     managed_by  = "terraform"
+  }
+
+  lifecycle {
+    prevent_destroy = true
   }
 }
 
@@ -161,7 +143,7 @@ resource "hcloud_server" "main_server" {
   )
 
   # Firewall
-  firewall_ids = [local.firewall_id]
+  firewall_ids = [hcloud_firewall.server_firewall.id]
 
   # Network configuration
   public_net {

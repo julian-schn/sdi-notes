@@ -1,0 +1,8 @@
+# config.auto.tfvars.example - Exercise 22: Creating DNS Records
+# Copy to config.auto.tfvars and customize values
+
+dns_zone       = "g2.sdi.hdm-stuttgart.cloud"
+project        = "g2"
+server_ip      = "1.2.3.4"
+server_name    = "workhorse"
+server_aliases = ["www", "mail"]

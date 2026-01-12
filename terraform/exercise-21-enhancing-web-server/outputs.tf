@@ -3,9 +3,9 @@ output "server_ip" {
 }
 
 output "domain_root" {
-  value = "${var.project}.${var.dns_zone}"
+  value = "${var.project}.sdi.hdm-stuttgart.cloud"
 }
 
 output "domain_www" {
-  value = "www.${var.project}.${var.dns_zone}"
+  value = "www.${var.project}.sdi.hdm-stuttgart.cloud"
 }

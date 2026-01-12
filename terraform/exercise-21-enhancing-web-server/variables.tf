@@ -1,22 +1,27 @@
-variable "hcloud_token" {
-  sensitive = true
-  default   = ""
-}
+# Exercise 21 - Variables
 
 variable "server_name" {
-  default = "web-server"
+  description = "Name of the web server"
+  type        = string
+  default     = "web-server"
 }
 
 variable "server_image" {
-  default = "debian-11"
+  description = "Server operating system image"
+  type        = string
+  default     = "debian-11"
 }
 
 variable "server_type" {
-  default = "cx11"
+  description = "Server type/size"
+  type        = string
+  default     = "cx23"
 }
 
 variable "location" {
-  default = "nbg1"
+  description = "Server location"
+  type        = string
+  default     = "nbg1"
 }
 
 variable "ssh_public_key" {
@@ -31,18 +36,25 @@ variable "ssh_public_key_secondary" {
 }
 
 variable "project" {
-  default = "g02"
+  description = "Project/group name (e.g., g02)"
+  type        = string
+  default     = "g02"
 }
 
 variable "environment" {
-  default = "production"
+  description = "Environment name"
+  type        = string
+  default     = "production"
 }
 
 variable "devops_username" {
-  default = "devops"
+  description = "Username for the DevOps account"
+  type        = string
+  default     = "devops"
 }
 
-variable "dns_zone" {
-  description = "The DNS zone name to add records to"
-  default     = "sdi.hdm-stuttgart.cloud"
+variable "dns_secret" {
+  description = "HMAC-SHA512 secret for HDM Stuttgart DNS (from dnsupdate.sec)"
+  type        = string
+  sensitive   = true
 }
