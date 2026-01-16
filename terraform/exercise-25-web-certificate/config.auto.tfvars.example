@@ -1,0 +1,10 @@
+# config.auto.tfvars.example - Exercise 25: Web Certificate
+# Copy to config.auto.tfvars and customize values
+#
+# IMPORTANT: Default uses staging server. Only set use_production = true
+# when you're ready for a real certificate!
+
+dns_zone       = "g2.sdi.hdm-stuttgart.cloud"
+project        = "g2"
+email          = "id@hdm-stuttgart.de"
+use_production = false

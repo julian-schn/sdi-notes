@@ -1,0 +1,15 @@
+# config.auto.tfvars.example - Exercise 26: Testing Certificate
+# Copy to config.auto.tfvars and customize values
+#
+# PREREQUISITE: Run exercise-25 first to generate the certificate!
+
+server_type      = "cx23"
+server_image     = "debian-13"
+location         = "nbg1"
+devops_username  = "devops"
+environment      = "development"
+project          = "g2"
+dns_zone         = "g2.sdi.hdm-stuttgart.cloud"
+server_names     = ["www", "mail"]
+certificate_path = "../exercise-25-web-certificate/gen/certificate.pem"
+private_key_path = "../exercise-25-web-certificate/gen/private.pem"

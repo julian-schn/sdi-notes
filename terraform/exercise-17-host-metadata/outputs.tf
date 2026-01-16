@@ -35,9 +35,9 @@ output "metadata_file_path" {
   value       = module.host_metadata.filename
 }
 
-output "server_datacenter" {
-  description = "Datacenter where the server is located"
-  value       = hcloud_server.main_server.datacenter
+output "server_location" {
+  description = "Location where the server is located"
+  value       = hcloud_server.main_server.location
 }
 
 output "server_status" {

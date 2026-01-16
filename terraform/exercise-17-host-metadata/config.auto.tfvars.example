@@ -1,10 +1,10 @@
 # config.auto.tfvars.example - Exercise 17: Host Metadata
 # Copy to config.auto.tfvars and customize values
 
-server_base_name = "server"
+server_base_name = "metadata-server"
 server_type      = "cx23"
 server_image     = "debian-13"
 location         = "nbg1"
 devops_username  = "devops"
 environment      = "development"
-project          = "hello-world"
+project          = "sdi"

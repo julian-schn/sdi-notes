@@ -1,0 +1,12 @@
+# config.auto.tfvars.example - Exercise 24: Multi-Server
+# Copy to config.auto.tfvars and customize values
+
+server_base_name = "work"
+server_count     = 2
+server_type      = "cx23"
+server_image     = "debian-13"
+location         = "nbg1"
+devops_username  = "devops"
+environment      = "development"
+project          = "g2"
+dns_zone         = "g2.sdi.hdm-stuttgart.cloud"

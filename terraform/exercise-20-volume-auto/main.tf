@@ -116,10 +116,6 @@ resource "hcloud_volume" "data_volume" {
     project     = var.project
     managed_by  = "terraform"
   }
-
-  lifecycle {
-    prevent_destroy = true
-  }
 }
 
 # Attach Volume to Server

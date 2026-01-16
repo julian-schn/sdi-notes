@@ -47,22 +47,26 @@ These are regenerated on every `terraform apply`, so they always match your curr
 ## Usage
 
 1. **Copy the example variables file:**
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars`:**
+
    ```hcl
    ssh_public_key = file("~/.ssh/id_ed25519.pub")
    devops_username = "devops"
    ```
 
 3. **Set your Hetzner API token:**
+
    ```bash
-   export HCLOUD_TOKEN="your-api-token-here"
+   export HCLOUD_TOKEN="replace-me"
    ```
 
 4. **Initialize and apply:**
+
    ```bash
    terraform init
    terraform apply
@@ -71,6 +75,7 @@ These are regenerated on every `terraform apply`, so they always match your curr
 5. **Wait for cloud-init to complete** (2-3 minutes)
 
 6. **Use the wrapper scripts:**
+
    ```bash
    # Connect via SSH
    ./bin/ssh
@@ -178,19 +183,23 @@ grep $(terraform output -raw server_ip) ~/.ssh/known_hosts
 ## Troubleshooting
 
 **ssh-keyscan fails?**
+
 - Server might not be ready yet
 - Check: `ssh-keyscan $(terraform output -raw server_ip)`
 - Wait a few seconds and `terraform apply` again
 
 **Wrapper scripts have wrong IP?**
+
 - Destroy and recreate: `terraform apply -replace=hcloud_server.main_server`
 
 **Permission denied on wrapper scripts?**
+
 ```bash
 chmod +x bin/ssh bin/scp
 ```
 
 **Need to pass additional SSH options?**
+
 ```bash
 ./bin/ssh -v  # verbose mode
 ./bin/ssh -L 8080:localhost:80  # port forwarding

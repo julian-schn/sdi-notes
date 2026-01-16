@@ -70,11 +70,13 @@ exercise-17-host-metadata/
 ## Usage
 
 1. **Copy the example variables file:**
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars`:**
+
    ```hcl
    ssh_public_key = file("~/.ssh/id_ed25519.pub")
    devops_username = "devops"
@@ -82,22 +84,26 @@ exercise-17-host-metadata/
    ```
 
 3. **Set your Hetzner API token:**
+
    ```bash
-   export HCLOUD_TOKEN="your-api-token-here"
+   export HCLOUD_TOKEN="replace-me"
    ```
 
 4. **Initialize and apply:**
+
    ```bash
    terraform init
    terraform apply
    ```
 
 5. **Check the generated metadata:**
+
    ```bash
    cat gen/server-1.json
    ```
 
    You'll see:
+
    ```json
    {
      "ipv4": "123.45.67.89",
@@ -107,6 +113,7 @@ exercise-17-host-metadata/
    ```
 
 6. **Connect using wrapper scripts:**
+
    ```bash
    ./bin/ssh
    ```
@@ -254,23 +261,27 @@ variable "environment" { type = string }
 ## Troubleshooting
 
 **Server naming conflicts?**
+
 - The data source queries existing servers
 - Make sure `server_base_name` matches your naming pattern
 - Check: `hcloud server list`
 
 **Module not found?**
+
 ```bash
 terraform init
 # Re-initializes and downloads/links modules
 ```
 
 **Metadata file in wrong location?**
+
 - Check `gen/` directory exists
 - Module uses relative path from root
 
 ## Next Steps
 
 This is the final exercise! You now have:
+
 - ✅ Basic server provisioning (Ex 13)
 - ✅ Automated software installation (Ex 14)
 - ✅ Advanced cloud-init (Ex 15)
@@ -278,6 +289,7 @@ This is the final exercise! You now have:
 - ✅ Modular architecture (Ex 17)
 
 **Continue learning:**
+
 - Create more modules (firewall, load balancer, etc.)
 - Add remote state backend (S3, Terraform Cloud)
 - Implement workspaces for multi-environment

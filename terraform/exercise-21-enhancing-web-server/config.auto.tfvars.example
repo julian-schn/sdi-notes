@@ -3,8 +3,8 @@
 
 server_name     = "web-server"
 server_type     = "cx23"
-server_image    = "debian-11"
+server_image    = "debian-13"
 location        = "nbg1"
 devops_username = "devops"
-environment     = "production"
-project         = "g02"
+environment     = "development"
+project         = "g2"

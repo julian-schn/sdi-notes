@@ -1,0 +1,11 @@
+# config.auto.tfvars.example - Exercise 23: DNS Host
+# Copy to config.auto.tfvars and customize values
+
+server_name     = "workhorse"
+server_type     = "cx23"
+server_image    = "debian-13"
+location        = "nbg1"
+devops_username = "devops"
+environment     = "development"
+project         = "g2"
+dns_zone        = "g2.sdi.hdm-stuttgart.cloud"

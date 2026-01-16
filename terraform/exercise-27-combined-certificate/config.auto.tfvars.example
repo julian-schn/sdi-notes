@@ -1,0 +1,16 @@
+# config.auto.tfvars.example - Exercise 27: Combined Certificate
+# Copy to config.auto.tfvars and customize values
+#
+# This exercise combines certificate generation AND server creation!
+# IMPORTANT: Default uses staging certificate (browsers will show warnings)
+
+server_type      = "cx23"
+server_image     = "debian-13"
+location         = "nbg1"
+devops_username  = "devops"
+environment      = "development"
+project          = "g2"
+dns_zone         = "g2.sdi.hdm-stuttgart.cloud"
+server_names     = ["www", "mail"]
+email            = "id@hdm-stuttgart.de"
+use_production   = false

@@ -33,35 +33,42 @@ This configuration creates:
 ## Usage
 
 1. **Copy the example variables file:**
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars`:**
+
    ```hcl
    ssh_public_key = file("~/.ssh/id_ed25519.pub")
    ```
 
 3. **Set your Hetzner API token:**
+
    ```bash
-   export HCLOUD_TOKEN="your-api-token-here"
+   export HCLOUD_TOKEN="replace-me"
    ```
 
 4. **Initialize and apply:**
+
    ```bash
    terraform init
    terraform apply
    ```
 
 5. **Get the Nginx URL:**
+
    ```bash
    terraform output nginx_url
    ```
 
 6. **Visit in your browser or test with curl:**
+
    ```bash
    curl $(terraform output -raw nginx_url)
    ```
+
    You should see the default Nginx welcome page!
 
 ## Verification
@@ -89,12 +96,14 @@ The `user_data` parameter in the server resource tells Hetzner Cloud to run this
 ## Troubleshooting
 
 **Nginx not running?**
+
 - Check cloud-init logs: `cat /var/log/cloud-init-output.log`
 - The script runs as root during provisioning
 
 **Can't access port 80?**
+
 - Verify firewall rule in Hetzner Cloud console
-- Check with: `curl -v http://your-server-ip`
+- Check with: `curl -v http://server-ip`
 
 ## Next Steps
 

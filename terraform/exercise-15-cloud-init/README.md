@@ -32,11 +32,13 @@ This exercise introduces **cloud-init**, a powerful industry-standard tool for a
 ## Usage
 
 1. **Copy the example variables file:**
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars`:**
+
    ```hcl
    ssh_public_key = file("~/.ssh/id_ed25519.pub")
    # Optional second key:
@@ -45,17 +47,20 @@ This exercise introduces **cloud-init**, a powerful industry-standard tool for a
    ```
 
 3. **Set your Hetzner API token:**
+
    ```bash
-   export HCLOUD_TOKEN="your-api-token-here"
+   export HCLOUD_TOKEN="replace-me"
    ```
 
 4. **Initialize and apply:**
+
    ```bash
    terraform init
    terraform apply
    ```
 
 5. **Wait for cloud-init to complete** (2-3 minutes):
+
    ```bash
    # Get the SSH command from output
    terraform output ssh_command
@@ -100,6 +105,7 @@ sudo ufw status
 ```
 
 Should show:
+
 ```
 Status: active
 To                         Action      From
@@ -150,6 +156,7 @@ The `cloud-init.yaml` file uses Terraform template variables:
 ## Troubleshooting
 
 **Cloud-init still running?**
+
 ```bash
 cloud-init status --wait
 # Or check logs:
@@ -157,15 +164,18 @@ cat /var/log/cloud-init-output.log
 ```
 
 **Can't SSH as devops?**
+
 - Check you're using the correct username (not root)
 - Verify SSH key is in terraform.tfvars
 - Wait for cloud-init to complete
 
 **Nginx not showing custom page?**
+
 - Check if script ran: `sudo cat /var/www/html/index.html`
 - Check cloud-init logs for errors
 
 **Fail2ban not working?**
+
 ```bash
 sudo systemctl status fail2ban
 sudo fail2ban-client ping

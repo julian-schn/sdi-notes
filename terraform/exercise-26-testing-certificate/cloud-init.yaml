@@ -1,0 +1,105 @@
+#cloud-config
+# Exercise 26 - Cloud-init with Nginx SSL configuration
+# Installs certificate and configures HTTPS
+
+hostname: ${server_name}
+
+users:
+  - name: ${devops_username}
+    groups: sudo
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    ssh_authorized_keys:
+%{ for key in ssh_public_keys ~}
+      - ${key}
+%{ endfor ~}
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - vim
+  - curl
+  - wget
+  - nginx
+
+write_files:
+  # SSL Certificate
+  - path: /etc/nginx/ssl/certificate.pem
+    encoding: b64
+    content: ${certificate_content}
+    permissions: '0644'
+    owner: root:root
+
+  # SSL Private Key
+  - path: /etc/nginx/ssl/private.pem
+    encoding: b64
+    content: ${private_key_content}
+    permissions: '0600'
+    owner: root:root
+
+  # Nginx SSL configuration
+  - path: /etc/nginx/sites-available/default
+    content: |
+      server {
+          listen 80 default_server;
+          listen [::]:80 default_server;
+          server_name _;
+          
+          # Redirect HTTP to HTTPS
+          return 301 https://$host$request_uri;
+      }
+
+      server {
+          listen 443 ssl default_server;
+          listen [::]:443 ssl default_server;
+          
+          server_name ${dns_zone} *.${dns_zone};
+
+          ssl_certificate /etc/nginx/ssl/certificate.pem;
+          ssl_certificate_key /etc/nginx/ssl/private.pem;
+          
+          ssl_protocols TLSv1.2 TLSv1.3;
+          ssl_ciphers HIGH:!aNULL:!MD5;
+          ssl_prefer_server_ciphers on;
+
+          root /var/www/html;
+          index index.html index.htm;
+
+          location / {
+              try_files $uri $uri/ =404;
+          }
+      }
+    permissions: '0644'
+    owner: root:root
+
+  # Custom index page
+  - path: /var/www/html/index.html
+    content: |
+      <!DOCTYPE html>
+      <html>
+      <head>
+          <title>Exercise 26 - SSL Test</title>
+          <style>
+              body { font-family: Arial, sans-serif; margin: 50px; background: #1a1a2e; color: #eee; }
+              .success { color: #4ade80; }
+              h1 { color: #60a5fa; }
+          </style>
+      </head>
+      <body>
+          <h1>🔒 Exercise 26 - SSL Certificate Test</h1>
+          <p class="success">✅ If you see this page over HTTPS, the certificate is working!</p>
+          <p>Domain: ${dns_zone}</p>
+          <p>Server provisioned by Terraform</p>
+      </body>
+      </html>
+    permissions: '0644'
+    owner: www-data:www-data
+
+runcmd:
+  - mkdir -p /etc/nginx/ssl
+  - nginx -t
+  - systemctl enable nginx
+  - systemctl restart nginx
+
+final_message: "Cloud-init completed - Nginx with SSL configured"

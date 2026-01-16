@@ -3,5 +3,5 @@
 
 server_name  = "nginx-server"
 server_type  = "cx23"
-server_image = "ubuntu-22.04"
-location     = "hel1"
+server_image = "debian-13"
+location     = "nbg1"

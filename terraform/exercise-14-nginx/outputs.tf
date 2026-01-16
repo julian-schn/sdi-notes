@@ -15,9 +15,9 @@ output "nginx_url" {
   value       = "http://${hcloud_server.nginx_server.ipv4_address}"
 }
 
-output "server_datacenter" {
-  description = "Datacenter where the server is located"
-  value       = hcloud_server.nginx_server.datacenter
+output "server_location" {
+  description = "Location where the server is located"
+  value       = hcloud_server.nginx_server.location
 }
 
 output "server_status" {

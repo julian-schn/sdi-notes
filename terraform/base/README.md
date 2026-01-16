@@ -27,11 +27,13 @@ This configuration creates:
 ## Usage
 
 1. **Copy the example variables file:**
+
    ```bash
    cp terraform.tfvars.example terraform.tfvars
    ```
 
 2. **Edit `terraform.tfvars` with your values:**
+
    ```hcl
    ssh_public_key = file("~/.ssh/id_ed25519.pub")
    # Optional overrides:
@@ -40,27 +42,33 @@ This configuration creates:
    ```
 
 3. **Set your Hetzner API token:**
+
    ```bash
-   export HCLOUD_TOKEN="your-api-token-here"
+   export HCLOUD_TOKEN="replace-me"
    ```
+
    Or add it to `terraform.tfvars` (not recommended for security).
 
 4. **Initialize Terraform:**
+
    ```bash
    terraform init
    ```
 
 5. **Preview the changes:**
+
    ```bash
    terraform plan
    ```
 
 6. **Apply the configuration:**
+
    ```bash
    terraform apply
    ```
 
 7. **Access your server:**
+
    ```bash
    ssh root@$(terraform output -raw server_ip)
    ```
