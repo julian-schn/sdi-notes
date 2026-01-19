@@ -1,65 +1,77 @@
-# SDI Notes
+# SDI Notes 🚀
 
-Lecture notes and documentation for **113475a Software Defined Infrastructure**.
+[![Deploy VitePress to GitHub Pages](https://github.com/julian-schn/sdi-notes/actions/workflows/deploy.yml/badge.svg)](https://github.com/julian-schn/sdi-notes/actions/workflows/deploy.yml)
 
-## View the Notes
+Comprehensive lecture notes, documentation, and hands-on resources for the **113475a Software Defined Infrastructure** course.
 
-**Live Documentation:** [https://julian-schn.github.io/sdi-notes/](https://julian-schn.github.io/sdi-notes/)
+## 🔗 Quick Links
 
-## About
-
-This repository contains comprehensive notes, documentation, and resources for the Software Defined Infrastructure course. The materials are designed to help students understand key concepts and principles of SDI technologies.
-
-## Contents
-
-This repository includes:
-
-- **Infrastructure as Code (IaC)** - Terraform fundamentals, configuration, and best practices
-- **Hands-on Exercises** - SSH, system administration, and infrastructure automation
-- **Terraform Code** - Working examples and configurations
-- Build scripts (Makefile for Terraform exercises)
-
-## Local Development
-
-This project uses VitePress for documentation. To run locally:
-
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm run docs:dev
-
-# Build for production
-npm run docs:build
-
-# Preview production build
-npm run docs:preview
-```
-
-The documentation will be available at `http://localhost:5173`
-
-## Course Information
-
-**Course Code:** 113475a  
-**Subject:** Software Defined Infrastructure
-
-## Contributing
-
-Contributions, corrections, and improvements are welcome! Please feel free to:
-
-- Open an issue for discussion
-- Submit a pull request with improvements
-- Report any errors or typos
-
-## License
-
-This project is currently unlicensed. Please contact the repository owner for usage permissions.
-
-## Contact
-
-For questions or suggestions, please open an issue in this repository.
+- **🌐 Live Documentation:** [sdi-notes.pages.dev](https://julian-schn.github.io/sdi-notes/)
+- **🛠 Infrastructure As Code:** [docs/iac/](docs/iac/index.md)
+- **📝 Exercises:** [docs/exercises/](docs/exercises/index.md)
 
 ---
 
-*Last updated: October 2025*
+## 📖 About the Course
+
+This repository serves as a central hub for understanding the principles and technologies behind **Software Defined Infrastructure (SDI)**. It covers the transition from traditional hardware-centric management to software-driven automated environments.
+
+### Key Topics Covered
+- **Infrastructure as Code (IaC):** Mastering Terraform for declarative resource management.
+- **Automation & Orchestration:** Streamlining system administration and deployments.
+- **Cloud Infrastructure:** Hands-on experience with providers like Hetzner Cloud.
+- **System Administration:** SSH management, package automation, and volume handling.
+
+---
+
+## 💻 Local Development
+
+This project is built using [VitePress](https://vitepress.dev/). 
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- `npm` (comes with Node.js)
+
+### Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/julian-schn/sdi-notes.git
+   cd sdi-notes
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+   *The documentation will be active at `http://localhost:5173`.*
+
+### Other Commands
+
+| Command | Description |
+|---------|-------------|
+| `npm run docs:build` | Build the documentation for production |
+| `npm run docs:preview` | Preview the local production build |
+
+---
+
+## 🤝 Contributing
+
+We value your feedback! If you find errors, typos, or have suggestions for improvement:
+
+1. **Open an Issue** to discuss your ideas.
+2. **Submit a Pull Request** with your proposed changes.
+
+---
+
+## 📄 License
+
+This project is currently for personal/educational use. Please contact the repository owner before redistribution.
+
+---
+*Last updated: January 2026*
