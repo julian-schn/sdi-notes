@@ -14,18 +14,30 @@ This repository contains comprehensive notes, documentation, and resources for t
 
 This repository includes:
 
-- Lecture notes
-- Course documentation
-- Reference materials
-- Build scripts (Makefile)
+- **Infrastructure as Code (IaC)** - Terraform fundamentals, configuration, and best practices
+- **Hands-on Exercises** - SSH, system administration, and infrastructure automation
+- **Terraform Code** - Working examples and configurations
+- Build scripts (Makefile for Terraform exercises)
 
-## Building
+## Local Development
 
-This project uses a Makefile for building documentation. To build:
+This project uses VitePress for documentation. To run locally:
 
 ```bash
-make
+# Install dependencies
+npm install
+
+# Start development server
+npm run docs:dev
+
+# Build for production
+npm run docs:build
+
+# Preview production build
+npm run docs:preview
 ```
+
+The documentation will be available at `http://localhost:5173`
 
 ## Course Information
 

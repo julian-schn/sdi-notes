@@ -1,6 +1,6 @@
 # 19 - Partitions and Mounting
 
-> **Working Code:** [`terraform/exercise-19-volume-manual/`](../../terraform/exercise-19-volume-manual/)
+> **Working Code:** [`terraform/exercise-19-volume-manual/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-19-volume-manual/)
 
 - Goal: Attach a volume to a server and manually partition/mount it.
 

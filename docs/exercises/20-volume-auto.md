@@ -1,6 +1,6 @@
 # 20 - Mount point's name specification
 
-> **Working Code:** [`terraform/exercise-20-volume-auto/`](../../terraform/exercise-20-volume-auto/)
+> **Working Code:** [`terraform/exercise-20-volume-auto/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-20-volume-auto/)
 
 - Goal: Automatically format and mount the volume to `/volume01` using Cloud-init.
 

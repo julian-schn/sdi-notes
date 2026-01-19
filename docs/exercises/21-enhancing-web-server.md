@@ -1,6 +1,6 @@
 # 21 - Enhancing your web server
 
-> **Working Code:** [`terraform/exercise-21-enhancing-web-server/`](../../terraform/exercise-21-enhancing-web-server/)
+> **Working Code:** [`terraform/exercise-21-enhancing-web-server/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-21-enhancing-web-server/)
 
 - Goal: Add DNS records and enable TLS with Let's Encrypt for your web server.
 

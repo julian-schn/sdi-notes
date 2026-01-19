@@ -1,6 +1,6 @@
 # 13 - Incrementally creating a base system
 
-> **Working Code:** [`terraform/base/`](../../terraform/base/)
+> **Working Code:** [`terraform/base/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/base/)
 
 - Automatically create servers on Hetzner Cloud using Terraform
 

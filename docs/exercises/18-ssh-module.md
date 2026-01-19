@@ -1,6 +1,6 @@
 # 18 - SSH Module Refactor
 
-> **Working Code:** [`terraform/exercise-18-ssh-module/`](../../terraform/exercise-18-ssh-module/)
+> **Working Code:** [`terraform/exercise-18-ssh-module/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-18-ssh-module/)
 
 - Goal: Refactor the SSH/SCP wrapper and known_hosts generation logic into a reusable module.
 

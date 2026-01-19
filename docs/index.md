@@ -1,7 +1,31 @@
-# Home
+---
+layout: home
 
-- Notes and code for SDI
+hero:
+  name: "SDI Notes"
+  text: "Software Defined Infrastructure"
+  tagline: Comprehensive notes on Terraform and modern infrastructure practices
+  actions:
+    - theme: brand
+      text: Infrastructure as Code
+      link: /iac/introduction
+    - theme: alt
+      text: Exercises
+      link: /exercises/
 
-!!! tip "Reference"
-    [Hetzner Console](https://console.hetzner.com/projects/3660831/servers)
-    Slides and material on [Freedocs](https://freedocs.mi.hdm-stuttgart.de/sdi.html)
+features:
+  - icon: 🏗️
+    title: Infrastructure as Code
+    details: Learn Terraform fundamentals, configuration, and best practices for managing infrastructure
+  - icon: 🔧
+    title: Hands-on Exercises
+    details: Practical exercises covering SSH, system administration, and infrastructure automation
+  - icon: ☁️
+    title: Cloud Platforms
+    details: Work with Hetzner Cloud and other cloud providers to deploy real infrastructure
+---
+
+## Quick Links
+
+- [Hetzner Console](https://console.hetzner.com/projects/3660831/servers)
+- [Course Materials on Freedocs](https://freedocs.mi.hdm-stuttgart.de/sdi.html)

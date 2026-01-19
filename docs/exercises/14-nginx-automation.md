@@ -1,6 +1,6 @@
 # 14 - Automatic Nginx installation
 
-> **Working Code:** [`terraform/exercise-14-nginx/`](../../terraform/exercise-14-nginx/)
+> **Working Code:** [`terraform/exercise-14-nginx/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-14-nginx/)
 
 TLDR: write a small bash script that installs/enables nginx, then point Terraform `user_data` at it so new servers come up serving HTTP automatically.
 

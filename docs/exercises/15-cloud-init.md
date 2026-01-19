@@ -1,6 +1,6 @@
 # 15 - Cloud Init
 
-> **Working Code:** [`terraform/exercise-15-cloud-init/`](../../terraform/exercise-15-cloud-init/)
+> **Working Code:** [`terraform/exercise-15-cloud-init/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-15-cloud-init/)
 
 TLDR: replace inline bash with a cloud-init template that updates the OS, hardens SSH, installs nginx/fail2ban/plocate, renders a landing page, and opens port 80; apply via Terraform.
 
@@ -75,7 +75,7 @@ rule {
 ```
 4. `terraform apply` (or replace the server) to apply the new cloud-init on create.
 5. verify:
-- browser: `http://<server-ip>` shows “I'm Nginx @ "<ip>" created <timestamp>”
+- browser: `http://<server-ip>` shows "I'm Nginx @ &lt;ip&gt; created &lt;timestamp&gt;"
 - SSH: `ssh -v devops@<server-ip>` offers `publickey` only; `sudo su -` works via group `sudo`
 - root SSH login is denied
 - `fail2ban-client status sshd` counts failed attempts/bans after bad logins

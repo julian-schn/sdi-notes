@@ -1,6 +1,6 @@
 # 16 - Solving the ~/.ssh/known_hosts quirk
 
-> **Working Code:** [`terraform/exercise-16-known-hosts/`](../../terraform/exercise-16-known-hosts/)
+> **Working Code:** [`terraform/exercise-16-known-hosts/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-16-known-hosts/)
 
 - Goal: generate per-deployment SSH known_hosts and wrapper scripts so `ssh`/`scp` work without global known_hosts prompts.
 

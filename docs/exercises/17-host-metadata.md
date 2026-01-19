@@ -1,6 +1,6 @@
 # 17 - Host Metadata Generation
 
-> **Working Code:** [`terraform/exercise-17-host-metadata/`](../../terraform/exercise-17-host-metadata/)
+> **Working Code:** [`terraform/exercise-17-host-metadata/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-17-host-metadata/)
 
 - Goal: Implement module-based host creation that automatically generates a metadata JSON file for each host.
 

@@ -1,4 +1,6 @@
-#[Install Teraform Tutorial]([url](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli))
+# Terraform Installation
+
+[Official Install Tutorial](https://developer.hashicorp.com/terraform/tutorials/aws-get-started/install-cli)
 
 ## Installation
 1. Install ``gnupg`` and update

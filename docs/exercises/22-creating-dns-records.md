@@ -1,6 +1,6 @@
 # 22 - Creating DNS records
 
-> **Working Code:** [`terraform/exercise-22-creating-dns-records/`](../../terraform/exercise-22-creating-dns-records/)
+> **Working Code:** [`terraform/exercise-22-creating-dns-records/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-22-creating-dns-records/)
 
 ## Goal
 Starting from a domain `g02.sdi.hdm-stuttgart.cloud`, we use Terraform to create:
