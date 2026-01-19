@@ -2,6 +2,12 @@
 docs/.vitepress/dist
 docs/.vitepress/cache
 
+# MkDocs
+site/
+
+# Node
+node_modules/
+
 # Python
 __pycache__/
 *.py[cod]
