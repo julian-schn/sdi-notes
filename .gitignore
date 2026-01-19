@@ -1,6 +1,6 @@
-# MkDocs
-site/
-.cache/
+# VitePress
+docs/.vitepress/dist
+docs/.vitepress/cache
 
 # Python
 __pycache__/

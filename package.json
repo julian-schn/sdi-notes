@@ -1,0 +1,29 @@
+{
+  "name": "sdi-notes",
+  "version": "1.0.0",
+  "description": "Lecture notes and documentation for **113475a Software Defined Infrastructure**.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "docs:dev": "vitepress dev docs",
+    "docs:build": "vitepress build docs",
+    "docs:preview": "vitepress preview docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/julian-schn/sdi-notes.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/julian-schn/sdi-notes/issues"
+  },
+  "homepage": "https://github.com/julian-schn/sdi-notes#readme",
+  "devDependencies": {
+    "vitepress": "^1.6.4"
+  }
+}
