@@ -58,7 +58,12 @@ export default defineConfig({
                 { text: '19 - Volume (Manual)', link: '/exercises/19-volume-manual' },
                 { text: '20 - Volume (Auto)', link: '/exercises/20-volume-auto' },
                 { text: '21 - Enhancing Web Server', link: '/exercises/21-enhancing-web-server' },
-                { text: '22 - Creating DNS Records', link: '/exercises/22-creating-dns-records' }
+                { text: '22 - Creating DNS Records', link: '/exercises/22-creating-dns-records' },
+                { text: '23 - Host with DNS', link: '/exercises/23-host-with-dns' },
+                { text: '24 - Fixed Server Count', link: '/exercises/24-multiple-servers' },
+                { text: '25 - Web Certificate', link: '/exercises/25-web-certificate' },
+                { text: '26 - Testing Certificate', link: '/exercises/26-testing-certificate' },
+                { text: '27 - Combined Setup', link: '/exercises/27-combined-setup' }
               ]
             }
           ]
