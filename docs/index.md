@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: "SDI Notes"
-  text: "Software Defined Infrastructure"
+  text: "Software Defined Infrastructure (113475a)"
   tagline: Comprehensive notes on Terraform and modern infrastructure practices
   actions:
     - theme: brand
