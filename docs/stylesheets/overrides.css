@@ -1,5 +1,0 @@
-/* Keep nav labels exactly as written in Markdown */
-.md-tabs__link,
-.md-nav__link {
-  text-transform: none;
-}
