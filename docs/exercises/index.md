@@ -27,3 +27,8 @@ This section contains hands-on exercises for the Software Defined Infrastructure
 - [Exercise 20 - Volume (Auto)](./20-volume-auto)
 - [Exercise 21 - Enhancing Web Server](./21-enhancing-web-server)
 - [Exercise 22 - Creating DNS Records](./22-creating-dns-records)
+- [Exercise 23 - Host with DNS](./23-host-with-dns)
+- [Exercise 24 - Multiple Servers](./24-multiple-servers)
+- [Exercise 25 - Web Certificate](./25-web-certificate)
+- [Exercise 26 - Testing Certificate](./26-testing-certificate)
+- [Exercise 27 - Combined Setup](./27-combined-setup)

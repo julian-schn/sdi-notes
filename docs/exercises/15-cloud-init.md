@@ -2,9 +2,22 @@
 
 > **Working Code:** [`terraform/exercise-15-cloud-init/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-15-cloud-init/)
 
-TLDR: replace inline bash with a cloud-init template that updates the OS, hardens SSH, installs nginx/fail2ban/plocate, renders a landing page, and opens port 80; apply via Terraform.
+## Overview
+Replace inline bash scripts with a cloud-init template that provides comprehensive server bootstrapping including OS updates, SSH hardening, package installation, custom landing page, and firewall configuration.
 
-1. switch Terraform server `user_data` to a cloud-init template to bootstrap everything in one go:
+## Prerequisites
+- Completed [Exercise 14 - Nginx Automation](./14-nginx-automation.md)
+- Understanding of YAML syntax
+- Familiarity with cloud-init concepts
+
+## Objective
+Replace inline bash with a cloud-init template that updates the OS, hardens SSH, installs nginx/fail2ban/plocate, renders a landing page, and opens port 80; apply via Terraform.
+
+## Implementation
+
+### Step 1: Update Terraform to Use Cloud-Init Template
+Switch the server's `user_data` to use a cloud-init template:
+
 ```hcl
 user_data = templatefile("${path.module}/cloud-init.yaml", {
   server_name      = local.server_name
@@ -12,7 +25,10 @@ user_data = templatefile("${path.module}/cloud-init.yaml", {
   devops_username  = var.devops_username # defaults to "devops"
 })
 ```
-2. example `cloud-init.yaml` (Debian 12) that updates the OS, serves a custom page via Nginx, hardens SSH, and installs tooling:
+
+### Step 2: Create Cloud-Init Configuration
+Example `cloud-init.yaml` for Debian 12:
+
 ```yaml
 #cloud-config
 hostname: ${server_name}
@@ -64,7 +80,10 @@ runcmd:
   - [systemctl, enable, --now, fail2ban]
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; plocate-updatedb"]
 ```
-3. open firewall for HTTP in Terraform:
+
+### Step 3: Open HTTP Firewall Port in Terraform
+Add firewall rule for HTTP:
+
 ```hcl
 rule {
   direction = "in"
@@ -73,10 +92,33 @@ rule {
   source_ips = ["0.0.0.0/0", "::/0"]
 }
 ```
-4. `terraform apply` (or replace the server) to apply the new cloud-init on create.
-5. verify:
-- browser: `http://<server-ip>` shows "I'm Nginx @ &lt;ip&gt; created &lt;timestamp&gt;"
-- SSH: `ssh -v devops@<server-ip>` offers `publickey` only; `sudo su -` works via group `sudo`
-- root SSH login is denied
-- `fail2ban-client status sshd` counts failed attempts/bans after bad logins
-- `apt update` reports all packages up to date; `locate ssh_host` finds host key files after plocate index. 
+
+### Step 4: Apply Configuration
+Run `terraform apply` (or replace the server) to apply the new cloud-init configuration.
+
+## Verification
+1. Apply Terraform: `terraform apply`
+2. Wait for cloud-init to complete (~2-3 minutes)
+3. Check cloud-init status: `ssh devops@<server-ip> "sudo cloud-init status --wait"`
+4. Verify HTTP access: Open `http://<server-ip>` in browser, should show "I'm Nginx @ &lt;ip&gt; created &lt;timestamp&gt;"
+5. Verify SSH hardening: `ssh -v devops@<server-ip>` should only offer `publickey` authentication
+6. Verify sudo access: `ssh devops@<server-ip> "sudo su -"` should work without password
+7. Verify root SSH denied: `ssh root@<server-ip>` should be rejected
+8. Verify fail2ban: `ssh devops@<server-ip> "sudo fail2ban-client status sshd"`
+9. Verify packages updated: `ssh devops@<server-ip> "apt update"`
+10. Verify plocate: `ssh devops@<server-ip> "locate ssh_host"`
+
+## Problems & Learnings
+
+::: warning Common Issues
+*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
+:::
+
+::: tip Key Takeaways
+*Key learnings and best practices from this exercise will be documented here.*
+:::
+
+## Related Exercises
+- [14 - Nginx Automation](./14-nginx-automation.md) - Basic nginx automation
+- [16 - SSH Known Hosts](./16-ssh-known-hosts.md) - Managing SSH host keys
+- [20 - Volume Auto](./20-volume-auto.md) - Using cloud-init for volume management

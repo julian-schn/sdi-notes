@@ -1,24 +1,38 @@
-# 26 - Testing your web certificate
+# 26 - Testing Your Web Certificate
 
 > **Working Code:** [`terraform/exercise-26-testing-certificate/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-26-testing-certificate/)
 
-Create a host among with three corresponding DNS entries:
+## Overview
+Create a host with multiple DNS entries and install the wildcard certificate from Exercise 25 to enable HTTPS access on Nginx.
 
-1.  `g3.sdi.hdm-stuttgart.cloud`
-2.  `www.g3.sdi.hdm-stuttgart.cloud`
-3.  `mail.g3.sdi.hdm-stuttgart.cloud`
+## Prerequisites
+- Completed [Exercise 25 - Web Certificate](./25-web-certificate.md)
+- Understanding of Nginx SSL configuration
+- Familiarity with certificate installation process
 
-Your Terraform setup shall contain the following `config.auto.tfvars` allowing for an arbitrary number of DNS names:
+## Objective
+Create a host with DNS entries, install Nginx, and configure it to use the wildcard certificate for HTTPS access.
+
+## Implementation
+
+### Step 1: Configuration
+Create DNS entries for your zone using `config.auto.tfvars`:
 
 ```hcl
 dnsZone       = "g3.sdi.hdm-stuttgart.cloud"
 serverNames   = ["www", "cloud"]
 ```
 
-Install the Nginx web server. Modify the Nginx configuration to accept https requests using the certificate being generated in [Creating a web certificate](./25-web-certificate).
+This should create DNS entries:
+1. `g3.sdi.hdm-stuttgart.cloud`
+2. `www.g3.sdi.hdm-stuttgart.cloud`
+3. `mail.g3.sdi.hdm-stuttgart.cloud`
 
-> [!TIP]
-> The Nginx default configuration already contains a self signed certificate being referred to by `/etc/nginx/snippets/snakeoil.conf`. In `/etc/nginx/sites-available/default` all SSL supporting statements are yet being commented out:
+### Step 2: Nginx Configuration
+Install the Nginx web server and modify the configuration to accept HTTPS requests using the certificate from Exercise 25.
+
+::: tip Default Configuration
+The Nginx default configuration already contains a self signed certificate being referred to by `/etc/nginx/snippets/snakeoil.conf`. In `/etc/nginx/sites-available/default` all SSL supporting statements are yet being commented out:
 
 ```nginx
 # SSL configuration
@@ -31,8 +45,10 @@ Install the Nginx web server. Modify the Nginx configuration to accept https req
 #
 # include snippets/snakeoil.conf;
 ```
+:::
 
-After modifying the above configuration check for correctness:
+### Step 3: Verify Configuration
+After modifying the configuration, check for correctness:
 
 ```bash
 root@www:~# nginx -t
@@ -46,8 +62,45 @@ Correct any misconfiguration issues before restarting Nginx:
 systemctl restart nginx
 ```
 
-Your current staging certificate will cause warnings. Point your browser to `https://g3.sdi.hdm-stuttgart.cloud`, `https://g3.sdi.hdm-stuttgart.cloud` and `https://g3.sdi.hdm-stuttgart.cloud` anyway. Overrule certificate related warnings to actually see the three pages. Inspect the certificate. You should find `g3.sdi.hdm-stuttgart.cloud` and `*.g3.sdi.hdm-stuttgart.cloud`.
+### Step 4: Test with Staging Certificate
+Your current staging certificate will cause warnings. Point your browser to:
+- `https://g3.sdi.hdm-stuttgart.cloud`
+- `https://www.g3.sdi.hdm-stuttgart.cloud`
+- `https://mail.g3.sdi.hdm-stuttgart.cloud`
 
-If your certificate is basically alright re-generate it this time using the production setting `https://acme-v02.api.letsencrypt.org/directory` in [Creating a web certificate](./25-web-certificate). **Don't forget reverting back to staging after completion.** You may regret it!
+Overrule certificate related warnings to actually see the pages. Inspect the certificate. You should find `g3.sdi.hdm-stuttgart.cloud` and `*.g3.sdi.hdm-stuttgart.cloud`.
+
+### Step 5: Production Certificate
+If your certificate is basically correct, re-generate it using the production setting `https://acme-v02.api.letsencrypt.org/directory` in [Exercise 25 - Web Certificate](./25-web-certificate.md).
+
+::: danger Remember
+**Don't forget reverting back to staging after completion.** You may regret it due to rate limits!
+:::
 
 Copy the generated certificate to your server again. This time your browser should present a flawless view with respect to the underlying certificate for all three URLs.
+
+## Verification
+1. Apply Terraform to create server and DNS: `terraform apply`
+2. Copy certificate to server
+3. Configure Nginx SSL
+4. Test configuration: `nginx -t`
+5. Restart Nginx: `systemctl restart nginx`
+6. Test staging certificate in browser (expect warnings)
+7. Verify certificate details show correct domains
+8. Generate production certificate (if staging works)
+9. Copy production certificate to server
+10. Verify HTTPS works without warnings
+
+## Problems & Learnings
+
+::: warning Common Issues
+*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
+:::
+
+::: tip Key Takeaways
+*Key learnings and best practices from this exercise will be documented here.*
+:::
+
+## Related Exercises
+- [25 - Web Certificate](./25-web-certificate.md) - Certificate generation
+- [27 - Combined Setup](./27-combined-setup.md) - Automated certificate deployment

@@ -1,12 +1,22 @@
-# 13 - Incrementally creating a base system
+# 13 - Incrementally Creating a Base System
 
 > **Working Code:** [`terraform/base/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/base/)
 
-- Automatically create servers on Hetzner Cloud using Terraform
+## Overview
+Automatically create servers on Hetzner Cloud using Terraform. This exercise walks through incrementally building a base infrastructure configuration with proper security and access controls.
 
-TLDR: start with a minimal hcloud server + firewall + outputs; store the API token in tfvars/ENV, add your SSH key to avoid passwords, then `terraform apply` to create and inspect the server.
+## Prerequisites
+- Hetzner Cloud account with API token
+- Terraform installed locally
+- SSH key pair generated (`~/.ssh/id_ed25519.pub`)
 
-1. Start with minimal Terraform config (example):
+## Objective
+Start with a minimal hcloud server + firewall + outputs; store the API token in tfvars/ENV, add your SSH key to avoid passwords, then `terraform apply` to create and inspect the server.
+
+## Implementation
+
+### Step 1: Minimal Terraform Configuration
+Start with a basic Terraform configuration:
 
 ```hcl
 terraform {
@@ -30,7 +40,8 @@ resource "hcloud_server" "helloServer" {
 }
 ```
 
-2. Add inbound firewall rule for ssh
+### Step 2: Add Firewall for SSH
+Create an inbound firewall rule to allow SSH access:
 
 ```hcl
 resource "hcloud_firewall" "ssh" {
@@ -44,15 +55,8 @@ resource "hcloud_firewall" "ssh" {
 }
 ```
 
-3. Enter Hetzner API token after following commands
-
-```hcl
-terraform init
-terraform apply
-```
-
-4. you get email with ip + root pw
-2. protect API key (store secrets in other file)
+### Step 3: Protect API Token
+Store secrets in a separate file that won't be committed to git:
 
 ```hcl
 # variables.tf
@@ -65,16 +69,28 @@ variable "hcloud_token" {
 hcloud_token = "replace-me"
 ```
 
-6. switch from pw login to ssh
+### Step 4: Initialize and Apply
+Initialize Terraform and create the infrastructure:
+
+```bash
+terraform init
+terraform apply
+```
+
+You will receive an email with the server's IP address and root password.
+
+### Step 5: Switch to SSH Key Authentication
+Add your SSH public key to avoid password authentication:
 
 ```hcl
 resource "hcloud_ssh_key" "key" {
   name       = "ssh-key"
   public_key = file("~/.ssh/id_ed25519.pub")
-} # add to terraform resource
+}
 ```
 
-7. reference in server resource
+### Step 6: Reference SSH Key in Server Resource
+Update the server resource to use the SSH key:
 
 ```hcl
 resource "hcloud_server" "helloServer" {
@@ -86,7 +102,8 @@ resource "hcloud_server" "helloServer" {
 }
 ```
 
-8. add output values, add ``outputs.tf``
+### Step 7: Add Output Values
+Create an `outputs.tf` file to display useful information:
 
 ```hcl
 output "hello_ip_addr" {
@@ -98,4 +115,26 @@ output "hello_datacenter" {
 }
 ```
 
-9. run ``terraform apply``
+### Step 8: Apply Changes
+Run `terraform apply` to update the infrastructure with SSH key authentication and outputs.
+
+## Verification
+1. Initialize Terraform: `terraform init`
+2. Apply configuration: `terraform apply`
+3. Note the output IP address
+4. Connect via SSH: `ssh root@<ip-address>`
+5. Verify SSH key authentication works (no password prompt)
+
+## Problems & Learnings
+
+::: warning Common Issues
+*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
+:::
+
+::: tip Key Takeaways
+*Key learnings and best practices from this exercise will be documented here.*
+:::
+
+## Related Exercises
+- [14 - Nginx Automation](./14-nginx-automation.md) - Automating web server installation
+- [15 - Cloud Init](./15-cloud-init.md) - Advanced server bootstrapping

@@ -1,12 +1,22 @@
-# 20 - Mount point's name specification
+# 20 - Mount Point's Name Specification
 
 > **Working Code:** [`terraform/exercise-20-volume-auto/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-20-volume-auto/)
 
-- Goal: Automatically format and mount the volume to `/volume01` using Cloud-init.
+## Overview
+Automatically format and mount a volume to `/volume01` using Cloud-init. This eliminates the manual steps from Exercise 19 and provides a fully automated, repeatable volume setup process.
 
-## Terraform Configuration
+## Prerequisites
+- Completed [Exercise 19 - Volume Manual](./19-volume-manual.md)
+- Understanding of cloud-init disk_setup and fs_setup modules
+- Familiarity with [Exercise 15 - Cloud Init](./15-cloud-init.md)
 
-We disable automount so we can handle it ourselves:
+## Objective
+Automatically format and mount the volume to `/volume01` using Cloud-init.
+
+## Implementation
+
+### Step 1: Terraform Configuration
+Disable automount so cloud-init can handle it:
 
 ```hcl
 resource "hcloud_volume" "data_volume" {
@@ -19,7 +29,7 @@ resource "hcloud_volume_attachment" "main_attachment" {
 }
 ```
 
-We pass the device path to Cloud-init:
+Pass the device path to Cloud-init:
 
 ```hcl
 user_data = templatefile("${path.module}/cloud-init.yaml", {
@@ -28,9 +38,8 @@ user_data = templatefile("${path.module}/cloud-init.yaml", {
 })
 ```
 
-## Cloud-init Configuration
-
-We use `disk_setup`, `fs_setup`, and `mounts` modules:
+### Step 2: Cloud-init Configuration
+Use `disk_setup`, `fs_setup`, and `mounts` modules in `cloud-init.yaml`:
 
 ```yaml
 disk_setup:
@@ -50,28 +59,44 @@ mounts:
 
 ## Verification
 
-1. **Apply Terraform**:
-   ```bash
-   terraform apply
-   ```
+### Step 1: Apply Terraform
+```bash
+terraform apply
+```
 
-2. **SSH into the server**:
-   ```bash
-   ./bin/ssh
-   ```
+### Step 2: SSH into the Server
+```bash
+./bin/ssh
+```
 
-3. **Check Mount**:
-   ```bash
-   df -h /volume01
-   ```
-   You should see:
-   ```
-   Filesystem      Size  Used Avail Use% Mounted on
-   /dev/sdb         10G   24K  9.8G   1% /volume01
-   ```
+### Step 3: Check Mount
+```bash
+df -h /volume01
+```
 
-4. **Check Persistence**:
-   ```bash
-   cat /etc/fstab
-   ```
-   You should see an entry for `/volume01`.
+You should see:
+```
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdb         10G   24K  9.8G   1% /volume01
+```
+
+### Step 4: Check Persistence
+```bash
+cat /etc/fstab
+```
+
+You should see an entry for `/volume01`.
+
+## Problems & Learnings
+
+::: warning Common Issues
+*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
+:::
+
+::: tip Key Takeaways
+*Key learnings and best practices from this exercise will be documented here.*
+:::
+
+## Related Exercises
+- [19 - Volume Manual](./19-volume-manual.md) - Manual volume setup process
+- [15 - Cloud Init](./15-cloud-init.md) - Cloud-init fundamentals

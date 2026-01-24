@@ -1,21 +1,25 @@
-# 22 - Creating DNS records
+# 22 - Creating DNS Records
 
 > **Working Code:** [`terraform/exercise-22-creating-dns-records/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-22-creating-dns-records/)
 
-## Goal
-Starting from a domain `g02.sdi.hdm-stuttgart.cloud`, we use Terraform to create:
+## Overview
+Starting from a domain `g02.sdi.hdm-stuttgart.cloud`, use Terraform to create A records and CNAME aliases with proper validation to prevent configuration errors.
 
-1.  An **A record** `workhorse.g02...` resolving to `1.2.3.4`.
-2.  An **A record** `g02...` resolving to `1.2.3.4`.
-3.  Two **CNAME aliases** `www` and `mail` referencing `workhorse`.
+## Prerequisites
+- Access to Hetzner DNS or similar DNS provider
+- Understanding of DNS record types (A, CNAME)
+- Familiarity with Terraform variables and validation
 
-## Configuration
+## Objective
+Create an A record for `workhorse.g02...` resolving to `1.2.3.4`, an A record for apex `g02...`, and CNAME aliases `www` and `mail` referencing `workhorse`.
 
-We use variables for flexibility and strict validation rules to prevent configuration errors.
+## Implementation
 
-### Variables (`variables.tf`)
+### Step 1: Variables with Validation
+Create variables for flexibility with strict validation rules:
 
 ```hcl
+# variables.tf
 variable "server_name" {
   default = "workhorse"
 }
@@ -37,11 +41,11 @@ variable "server_aliases" {
 }
 ```
 
-### Main Logic (`main.tf`)
-
-We use the standard `count` meta-argument to iterate over aliases:
+### Step 2: Main Configuration
+Use the standard `count` meta-argument to iterate over aliases:
 
 ```hcl
+# main.tf
 resource "hetznerdns_record" "aliases" {
   count = length(var.server_aliases)
   # ...
@@ -51,10 +55,31 @@ resource "hetznerdns_record" "aliases" {
 }
 ```
 
+This creates:
+1. An A record `workhorse.g02...` resolving to `1.2.3.4`
+2. An A record for `g02...` resolving to `1.2.3.4`
+3. CNAME aliases `www` and `mail` both referencing `workhorse`
+
 ## Verification
 Run `terraform apply` and verify with `dig`:
 
 ```bash
 dig +noall +answer @ns1.hdm-stuttgart.cloud g02.sdi.hdm-stuttgart.cloud
 dig +noall +answer @ns1.hdm-stuttgart.cloud workhorse.g02.sdi.hdm-stuttgart.cloud
+dig +noall +answer @ns1.hdm-stuttgart.cloud www.g02.sdi.hdm-stuttgart.cloud
+dig +noall +answer @ns1.hdm-stuttgart.cloud mail.g02.sdi.hdm-stuttgart.cloud
 ```
+
+## Problems & Learnings
+
+::: warning Common Issues
+*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
+:::
+
+::: tip Key Takeaways
+*Key learnings and best practices from this exercise will be documented here.*
+:::
+
+## Related Exercises
+- [21 - Enhancing Web Server](./21-enhancing-web-server.md) - DNS with web server setup
+- [23 - Host with DNS](./23-host-with-dns.md) - Integrating DNS with server creation
