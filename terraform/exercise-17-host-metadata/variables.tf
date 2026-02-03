@@ -9,13 +9,13 @@ variable "server_base_name" {
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx23"
+  default     = "cx33"
 
   validation {
     condition = contains([
-      "cx11", "cx21", "cx22", "cx23", "cx31", "cx32", "cx41", "cx42", "cx51", "cx52",
+      "cx11", "cx21", "cx22", "cx33", "cx31", "cx32", "cx41", "cx42", "cx51", "cx52",
       "cpx11", "cpx21", "cpx31", "cpx41", "cpx51",
-      "ccx11", "ccx12", "ccx13", "ccx21", "ccx22", "ccx23", "ccx31", "ccx32", "ccx33"
+      "ccx11", "ccx12", "ccx13", "ccx21", "ccx22", "ccx33", "ccx31", "ccx32", "ccx33"
     ], var.server_type)
     error_message = "Server type must be a valid Hetzner Cloud server type."
   }
@@ -72,4 +72,16 @@ variable "project" {
   description = "Project name"
   type        = string
   default     = "hello-world"
+}
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  type        = string
+  default     = ""
+}
+
+variable "existing_ssh_key_secondary_name" {
+  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  type        = string
+  default     = ""
 }

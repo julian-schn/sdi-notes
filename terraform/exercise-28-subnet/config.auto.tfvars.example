@@ -1,0 +1,18 @@
+# config.auto.tfvars.example - Exercise 28: Creating a Subnet
+# Copy to config.auto.tfvars and customize values
+
+server_type     = "cx33"
+os_type         = "debian-13"
+location        = "nbg1"
+# existing_ssh_key_name = "Base-primary-ssh-key"
+devops_username = "devops"
+environment     = "dev"
+project         = "ex28"
+
+# Private Network Configuration
+private_network = { name = "private-net", ip_range = "10.0.0.0/8" }
+private_subnet  = { dns_domain_name = "intern.g3.hdm-stuttgart.cloud", ip_and_netmask = "10.0.1.0/24", network_zone = "eu-central" }
+
+# Host IP Addresses
+gateway_private_ip = "10.0.1.20"
+intern_private_ip  = "10.0.1.30"

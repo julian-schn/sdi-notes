@@ -36,3 +36,9 @@ variable "server_aliases" {
     error_message = "Duplicate server alias names found. Each alias must be unique."
   }
 }
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud (optional, unused in this exercise)"
+  type        = string
+  default     = ""
+}

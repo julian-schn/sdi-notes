@@ -1,23 +1,120 @@
 # Exercise 26 - Testing Your Web Certificate
-# Creates a server with Nginx SSL and multiple DNS entries
+# Self-contained: Generates certificate AND creates server with Nginx SSL
+
+# Get all existing SSH keys to check if our public key already exists
+data "hcloud_ssh_keys" "all" {}
+
+# Data sources to lookup existing SSH keys (if reusing)
+data "hcloud_ssh_key" "existing_primary" {
+  count = var.existing_ssh_key_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_name
+}
+
+data "hcloud_ssh_key" "existing_secondary" {
+  count = var.existing_ssh_key_secondary_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_secondary_name
+}
 
 locals {
   ssh_authorized_keys = concat(
     [var.ssh_public_key],
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
-  
+
   dns_zone_with_dot = "${var.dns_zone}."
-  
-  # Read certificate files from Exercise 25
-  certificate_content = file(var.certificate_path)
-  private_key_content = file(var.private_key_path)
+
+  # Find existing SSH key with matching public key
+  existing_key_with_pubkey = try([
+    for key in data.hcloud_ssh_keys.all.ssh_keys :
+    key if key.public_key == var.ssh_public_key
+  ][0], null)
+
+  # Determine if we should create a new SSH key or use existing
+  should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
+
+  primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
+    local.existing_key_with_pubkey != null ? local.existing_key_with_pubkey.id : hcloud_ssh_key.primary[0].id
+  )
+
+  secondary_ssh_key_id = var.ssh_public_key_secondary != "" ? (
+    var.existing_ssh_key_secondary_name != "" ? data.hcloud_ssh_key.existing_secondary[0].id : hcloud_ssh_key.secondary[0].id
+  ) : null
+
+  ssh_key_ids = compact(concat(
+    [local.primary_ssh_key_id],
+    local.secondary_ssh_key_id != null ? [local.secondary_ssh_key_id] : []
+  ))
 }
+
+# ============================================================================
+# PART 1: CERTIFICATE GENERATION
+# ============================================================================
+
+# Private key for ACME registration
+resource "tls_private_key" "acme_registration" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+# Register with ACME server
+resource "acme_registration" "registration" {
+  account_key_pem = tls_private_key.acme_registration.private_key_pem
+  email_address   = var.email
+}
+
+# Request wildcard certificate
+resource "acme_certificate" "wildcard" {
+  account_key_pem           = acme_registration.registration.account_key_pem
+  common_name               = var.dns_zone
+  subject_alternative_names = ["*.${var.dns_zone}"]
+
+  dns_challenge {
+    provider = "rfc2136"
+
+    config = {
+      RFC2136_NAMESERVER     = "ns1.sdi.hdm-stuttgart.cloud"
+      RFC2136_TSIG_ALGORITHM = "hmac-sha512"
+      RFC2136_TSIG_KEY       = "${var.project}.key"
+      RFC2136_TSIG_SECRET    = var.dns_secret
+    }
+  }
+}
+
+# Save certificate files locally (optional, for inspection)
+resource "local_file" "private_key" {
+  content         = acme_certificate.wildcard.private_key_pem
+  filename        = "${path.module}/gen/private.pem"
+  file_permission = "0600"
+}
+
+resource "local_file" "certificate" {
+  content         = "${acme_certificate.wildcard.certificate_pem}${acme_certificate.wildcard.issuer_pem}"
+  filename        = "${path.module}/gen/certificate.pem"
+  file_permission = "0644"
+}
+
+# ============================================================================
+# PART 2: SERVER INFRASTRUCTURE
+# ============================================================================
 
 # SSH Key
 resource "hcloud_ssh_key" "primary" {
+  count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-ssl-test-ssh-key"
   public_key = var.ssh_public_key
+
+  labels = {
+    environment = var.environment
+    project     = var.project
+    managed_by  = "terraform"
+  }
+}
+
+# Secondary SSH Key Resource (optional)
+resource "hcloud_ssh_key" "secondary" {
+  count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
+  name       = "${var.project}-ssl-test-secondary-ssh-key"
+  public_key = var.ssh_public_key_secondary
 
   labels = {
     environment = var.environment
@@ -76,14 +173,14 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Server
+# Server with certificate installed
 resource "hcloud_server" "web_server" {
   name        = "${var.project}-ssl-test"
   image       = var.server_image
   server_type = var.server_type
   location    = var.location
 
-  ssh_keys     = [hcloud_ssh_key.primary.id]
+  ssh_keys     = local.ssh_key_ids
   firewall_ids = [hcloud_firewall.server_firewall.id]
 
   public_net {
@@ -97,26 +194,57 @@ resource "hcloud_server" "web_server" {
     managed_by  = "terraform"
   }
 
+  # Cloud-init with generated certificate embedded
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     server_name         = var.dns_zone
     ssh_public_keys     = local.ssh_authorized_keys
     devops_username     = var.devops_username
-    certificate_content = base64encode(local.certificate_content)
-    private_key_content = base64encode(local.private_key_content)
+    certificate_content = base64encode("${acme_certificate.wildcard.certificate_pem}${acme_certificate.wildcard.issuer_pem}")
+    private_key_content = base64encode(acme_certificate.wildcard.private_key_pem)
     dns_zone            = var.dns_zone
   })
+
+  # Ensure certificate is generated first
+  depends_on = [acme_certificate.wildcard]
 
   lifecycle {
     create_before_destroy = true
   }
 }
 
-# DNS A record for the apex domain
-resource "dns_a_record_set" "apex" {
-  zone      = local.dns_zone_with_dot
-  name      = "@"
-  addresses = [hcloud_server.web_server.ipv4_address]
-  ttl       = 10
+# ============================================================================
+# PART 3: DNS RECORDS
+# ============================================================================
+
+# DNS A record for apex domain - using nsupdate workaround
+# The hashicorp/dns provider doesn't support apex/root records directly
+resource "null_resource" "apex_record" {
+  depends_on = [hcloud_server.web_server]
+  
+  triggers = {
+    server_ip  = hcloud_server.web_server.ipv4_address
+    zone       = var.dns_zone
+    project    = var.project
+    dns_secret = var.dns_secret
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "server ns1.sdi.hdm-stuttgart.cloud
+      update delete ${var.dns_zone}. A
+      update add ${var.dns_zone}. 10 A ${hcloud_server.web_server.ipv4_address}
+      send" | nsupdate -y "hmac-sha512:${var.project}.key:${var.dns_secret}"
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "server ns1.sdi.hdm-stuttgart.cloud
+      update delete ${self.triggers.zone}. A
+      send" | nsupdate -y "hmac-sha512:${self.triggers.project}.key:${self.triggers.dns_secret}" || true
+    EOT
+  }
 }
 
 # DNS A records for each server name (www, mail, etc.)
@@ -126,9 +254,40 @@ resource "dns_a_record_set" "names" {
   name      = var.server_names[count.index]
   addresses = [hcloud_server.web_server.ipv4_address]
   ttl       = 10
+  
+  depends_on = [hcloud_server.web_server]
 }
 
-# SSH wrapper
+# ============================================================================
+# PART 4: SSH HELPERS
+# ============================================================================
+
+resource "null_resource" "known_hosts" {
+  depends_on = [hcloud_server.web_server, null_resource.apex_record]
+
+  triggers = {
+    server_ip = hcloud_server.web_server.ipv4_address
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      set -euo pipefail
+      mkdir -p "${path.module}/gen"
+      
+      echo "Waiting for SSH on ${var.dns_zone}..."
+      for i in {1..30}; do
+        if ssh-keyscan -t ed25519 -T 5 ${var.dns_zone} 2>/dev/null | grep -q "ssh-ed25519"; then
+          ssh-keyscan -t ed25519 -T 5 ${var.dns_zone} > "${path.module}/gen/known_hosts" 2>/dev/null
+          echo "Host keys saved"
+          exit 0
+        fi
+        sleep 5
+      done
+      exit 1
+    EOT
+  }
+}
+
 resource "local_file" "ssh_wrapper" {
   content = templatefile("${path.module}/tpl/ssh.sh", {
     devopsUsername = var.devops_username

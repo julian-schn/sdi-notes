@@ -9,7 +9,7 @@ variable "server_name" {
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx23"
+  default     = "cx33"
 }
 
 variable "server_image" {
@@ -63,4 +63,33 @@ variable "project" {
   description = "Project name"
   type        = string
   default     = "volume-manual-demo"
+}
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  type        = string
+  default     = ""
+}
+
+variable "existing_ssh_key_secondary_name" {
+  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  type        = string
+  default     = ""
+}
+
+variable "volume_name" {
+  description = "Name of the volume to create"
+  type        = string
+  default     = "volume1"
+}
+
+variable "volume_size" {
+  description = "Size of the volume in GB"
+  type        = number
+  default     = 10
+
+  validation {
+    condition     = var.volume_size >= 10 && var.volume_size <= 10240
+    error_message = "Volume size must be between 10 GB and 10240 GB (10 TB)."
+  }
 }

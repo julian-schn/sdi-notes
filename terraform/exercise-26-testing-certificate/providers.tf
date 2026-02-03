@@ -1,5 +1,5 @@
 # Exercise 26 - Testing Your Web Certificate
-# Creates a server with Nginx SSL using certificate from Exercise 25
+# Providers configuration for self-contained certificate generation
 
 terraform {
   required_version = ">= 1.0"
@@ -13,29 +13,43 @@ terraform {
       source  = "hashicorp/dns"
       version = "~> 3.4"
     }
-    null = {
-      source  = "hashicorp/null"
-      version = "~> 3.2"
+    acme = {
+      source  = "vancluever/acme"
+      version = "~> 2.0"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
     }
     local = {
       source  = "hashicorp/local"
       version = "~> 2.5"
     }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
   }
 }
 
-# Configure the Hetzner Cloud Provider
-provider "hcloud" {}
+# Hetzner Cloud Provider
+provider "hcloud" {
+  token = var.hcloud_token
+}
 
-# Configure the DNS provider for HDM Stuttgart DNS server
+# DNS Provider (RFC2136 - Dynamic DNS)
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"
-    key_name      = "${var.project}.key."
     key_algorithm = "hmac-sha512"
+    key_name      = "${var.project}.key."
     key_secret    = var.dns_secret
   }
 }
 
-provider "null" {}
-provider "local" {}
+# ACME provider for Let's Encrypt certificates
+provider "acme" {
+  # Start with staging to avoid rate limits
+  # Switch to production after successful testing
+  server_url = var.use_production ? "https://acme-v02.api.letsencrypt.org/directory" : "https://acme-staging-v02.api.letsencrypt.org/directory"
+}

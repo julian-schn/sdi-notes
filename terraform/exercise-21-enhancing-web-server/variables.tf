@@ -15,7 +15,7 @@ variable "server_image" {
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx23"
+  default     = "cx33"
 }
 
 variable "location" {
@@ -57,4 +57,16 @@ variable "dns_secret" {
   description = "HMAC-SHA512 secret for HDM Stuttgart DNS (from dnsupdate.sec)"
   type        = string
   sensitive   = true
+}
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  type        = string
+  default     = ""
+}
+
+variable "existing_ssh_key_secondary_name" {
+  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  type        = string
+  default     = ""
 }

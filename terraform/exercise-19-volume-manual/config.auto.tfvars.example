@@ -1,10 +1,11 @@
 # config.auto.tfvars.example - Exercise 19: Volume Manual
 # Copy to config.auto.tfvars and customize values
 
-server_name     = "volume-manual-server"
-server_type     = "cx23"
-server_image    = "debian-13"
-location        = "nbg1"
-devops_username = "devops"
-environment     = "development"
-project         = "sdi"
+server_name = "volume-manual-server"
+server_type = "cx33"
+server_image = "debian-13"
+location = "nbg1"
+# existing_ssh_key_name = "Base-primary-ssh-key"
+project = "ex19"
+volume_name = "volume1"
+volume_size = 10

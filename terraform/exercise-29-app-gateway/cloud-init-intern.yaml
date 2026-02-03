@@ -1,0 +1,150 @@
+#cloud-config
+# Exercise 29 - Internal Server Cloud-Init Configuration with apt proxy
+
+hostname: ${hostname}
+fqdn: ${hostname}.${dns_domain_name}
+manage_etc_hosts: template
+
+# Disable password authentication and root login
+ssh_pwauth: false
+disable_root: true
+
+# Package management - NOW ENABLED with apt proxy!
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - ufw
+  - plocate
+  - netcat-openbsd
+  - net-tools
+  - curl
+  - wget
+  - htop
+
+# User configuration
+users:
+  - default
+  - name: ${devops_username}
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+%{ for key in ssh_authorized_keys ~}
+      - ${key}
+%{~ endfor ~}
+
+# Configure apt to use proxy BEFORE any package operations
+apt:
+  conf: |
+    Acquire::http::Proxy "http://${gateway_private_ip}:3142";
+
+# Write configuration files
+write_files:
+  # SSH hardening configuration
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+
+  # Persistent apt proxy configuration
+  - path: /etc/apt/apt.conf.d/02proxy
+    content: |
+      Acquire::http::Proxy "http://${gateway_private_ip}:3142";
+
+  # Custom hosts template for DNS resolution
+  - path: /etc/cloud/templates/hosts.debian.tmpl
+    content: |
+      ## template:jinja
+      {#
+      This file /etc/cloud/templates/hosts.debian.tmpl is only utilized
+      if enabled in cloud-config.  Specifically, in order to enable it
+      you need to add the following to config:
+        manage_etc_hosts: template
+      -#}
+      127.0.1.1 {{fqdn}} {{hostname}}
+      127.0.0.1 localhost
+
+      ${gateway_private_ip} gateway.${dns_domain_name} gateway
+      ${intern_private_ip} intern.${dns_domain_name} intern
+
+      # The following lines are desirable for IPv6 capable hosts
+      ::1 localhost ip6-localhost ip6-loopback
+      ff02::1 ip6-allnodes
+      ff02::2 ip6-allrouters
+
+  # MOTD with proxy information
+  - path: /etc/motd
+    content: |
+      ================================================================================
+      Internal Server with HTTP Proxy Access
+      ================================================================================
+
+      This server is connected to a private subnet.
+        - Internet access via HTTP proxy on gateway (${gateway_private_ip}:3142)
+        - Package updates/installs are available through the proxy
+        - Direct Internet connectivity is blocked (network isolation maintained)
+
+      HTTP Proxy Configuration:
+        Proxy URL:     http://${gateway_private_ip}:3142
+        Config file:   /etc/apt/apt.conf.d/02proxy
+        apt uses proxy automatically
+
+      Test proxy connectivity:
+        nc -zv ${gateway_private_ip} 3142
+
+      Verify no direct Internet:
+        ping 8.8.8.8  (should fail)
+
+      Test HTTP access via proxy:
+        curl -x http://${gateway_private_ip}:3142 http://example.com
+      ================================================================================
+
+# Commands to run after boot
+runcmd:
+  # Wait for apt-cacher-ng proxy to be available (with timeout)
+  - [bash, -lc, "echo 'Waiting for apt-cacher-ng proxy on ${gateway_private_ip}:3142...'"]
+  - [bash, -lc, "timeout 300 bash -c 'until nc -z ${gateway_private_ip} 3142; do echo \"Proxy not ready, waiting...\"; sleep 5; done' && echo 'Proxy is available!' || echo 'WARNING: Proxy wait timed out after 5 minutes'"]
+
+  # Restart SSH service with new configuration
+  - [systemctl, restart, ssh]
+
+  # Configure UFW firewall (allow from private network)
+  - [bash, -lc, "ufw default deny incoming"]
+  - [bash, -lc, "ufw default allow outgoing"]
+  - [bash, -lc, "ufw allow from 10.0.1.0/24"]
+  - [bash, -lc, "ufw --force enable"]
+
+  # Enable plocate
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
+  - [plocate-updatedb]
+
+  # Verify apt proxy is configured
+  - [bash, -lc, "echo 'Verifying apt proxy configuration:'"]
+  - [bash, -lc, "cat /etc/apt/apt.conf.d/02proxy"]
+
+  # Test package update via proxy
+  - [bash, -lc, "echo 'Testing package update via proxy:'"]
+  - [bash, -lc, "apt-get update"]
+
+  # Create verification script
+  - path: /usr/local/bin/verify-proxy
+    content: |
+      #!/bin/bash
+      echo "=== Proxy Configuration ==="
+      cat /etc/apt/apt.conf.d/02proxy
+      echo ""
+      echo "=== Proxy Connectivity ==="
+      nc -zv ${gateway_private_ip} 3142
+      echo ""
+      echo "=== Direct Internet (should fail) ==="
+      ping -c 1 -W 2 8.8.8.8 || echo "No direct Internet access (expected)"
+      echo ""
+      echo "=== Gateway Connectivity ==="
+      ping -c 1 ${gateway_private_ip}
+    permissions: '0755'
+
+# Final message
+final_message: "Internal server with HTTP proxy access is ready after $UPTIME seconds"

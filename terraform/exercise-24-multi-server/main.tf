@@ -1,21 +1,58 @@
 # Exercise 24 - Creating a Fixed Number of Servers
 # Creates server_count servers with DNS entries and individual SSH wrappers
 
+# Get all existing SSH keys to check if our public key already exists
+data "hcloud_ssh_keys" "all" {}
+
+# Data sources to lookup existing SSH keys (if reusing)
+data "hcloud_ssh_key" "existing_primary" {
+  count = var.existing_ssh_key_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_name
+}
+
+data "hcloud_ssh_key" "existing_secondary" {
+  count = var.existing_ssh_key_secondary_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_secondary_name
+}
+
 # Local values
 locals {
   ssh_authorized_keys = concat(
     [var.ssh_public_key],
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
-  
+
   dns_zone_with_dot = "${var.dns_zone}."
-  
+
   # Generate server names: work-1, work-2, etc.
   server_names = [for i in range(var.server_count) : "${var.server_base_name}-${i + 1}"]
+
+  # Find existing SSH key with matching public key
+  existing_key_with_pubkey = try([
+    for key in data.hcloud_ssh_keys.all.ssh_keys :
+    key if key.public_key == var.ssh_public_key
+  ][0], null)
+
+  # Determine if we should create a new SSH key or use existing
+  should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
+
+  primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
+    local.existing_key_with_pubkey != null ? local.existing_key_with_pubkey.id : hcloud_ssh_key.primary[0].id
+  )
+
+  secondary_ssh_key_id = var.ssh_public_key_secondary != "" ? (
+    var.existing_ssh_key_secondary_name != "" ? data.hcloud_ssh_key.existing_secondary[0].id : hcloud_ssh_key.secondary[0].id
+  ) : null
+
+  ssh_key_ids = compact(concat(
+    [local.primary_ssh_key_id],
+    local.secondary_ssh_key_id != null ? [local.secondary_ssh_key_id] : []
+  ))
 }
 
 # Primary SSH Key Resource
 resource "hcloud_ssh_key" "primary" {
+  count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-primary-ssh-key"
   public_key = var.ssh_public_key
 
@@ -28,7 +65,7 @@ resource "hcloud_ssh_key" "primary" {
 
 # Secondary SSH Key Resource (optional)
 resource "hcloud_ssh_key" "secondary" {
-  count      = var.ssh_public_key_secondary != "" ? 1 : 0
+  count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
   name       = "${var.project}-secondary-ssh-key"
   public_key = var.ssh_public_key_secondary
 
@@ -41,7 +78,7 @@ resource "hcloud_ssh_key" "secondary" {
 
 # Firewall for all servers
 resource "hcloud_firewall" "server_firewall" {
-  name = "${var.project}-firewall"
+  name = "${var.project}-multi-server-firewall"
 
   # SSH access
   rule {
@@ -105,10 +142,7 @@ resource "hcloud_server" "servers" {
   location    = var.location
 
   # SSH Keys
-  ssh_keys = concat(
-    [hcloud_ssh_key.primary.id],
-    var.ssh_public_key_secondary != "" ? [hcloud_ssh_key.secondary[0].id] : []
-  )
+  ssh_keys = local.ssh_key_ids
 
   # Firewall
   firewall_ids = [hcloud_firewall.server_firewall.id]

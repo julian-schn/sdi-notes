@@ -6,3 +6,6 @@ project        = "g2"
 server_ip      = "1.2.3.4"
 server_name    = "workhorse"
 server_aliases = ["www", "mail"]
+
+# Optional: Reuse existing SSH key (unused in this exercise, accepted for Makefile compatibility)
+# existing_ssh_key_name = "Base-primary-ssh-key"

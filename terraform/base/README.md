@@ -1,100 +1,38 @@
-# Exercise 13 - Incrementally Creating a Base System
+# Exercise 13 - Base System
 
-This is the foundation exercise that creates a minimal Hetzner Cloud infrastructure with Terraform.
+> **Full Guide:** [docs/exercises/13-base-system.md](../../docs/exercises/13-base-system.md)
 
-## What You'll Learn
+## Quick Start
 
-- Basic Terraform configuration
-- Creating a Hetzner Cloud server
-- Setting up SSH access
-- Configuring firewall rules
-- Managing outputs
+```bash
+# Using Makefile
+make E=base setup
+make E=base apply
 
-## What's Included
+# Using Terraform
+terraform init
+cp config.auto.tfvars.example config.auto.tfvars
+nano config.auto.tfvars
+terraform apply
+```
 
-This configuration creates:
+## Configuration
 
-1. **SSH Key Resource** - Uploads your public SSH key to Hetzner Cloud
-2. **Firewall** - Allows SSH (port 22) inbound and all outbound traffic
-3. **Server** - A basic Ubuntu server with the firewall attached
+Edit `config.auto.tfvars`:
 
-## Prerequisites
-
-- Hetzner Cloud account with API token
-- Terraform installed (>= 1.0)
-- SSH key pair generated
-
-## Usage
-
-1. **Copy the example variables file:**
-
-   ```bash
-   cp terraform.tfvars.example terraform.tfvars
-   ```
-
-2. **Edit `terraform.tfvars` with your values:**
-
-   ```hcl
-   ssh_public_key = file("~/.ssh/id_ed25519.pub")
-   # Optional overrides:
-   # server_name = "server"
-   # location    = "nbg1"
-   ```
-
-3. **Set your Hetzner API token:**
-
-   ```bash
-   export HCLOUD_TOKEN="replace-me"
-   ```
-
-   Or add it to `terraform.tfvars` (not recommended for security).
-
-4. **Initialize Terraform:**
-
-   ```bash
-   terraform init
-   ```
-
-5. **Preview the changes:**
-
-   ```bash
-   terraform plan
-   ```
-
-6. **Apply the configuration:**
-
-   ```bash
-   terraform apply
-   ```
-
-7. **Access your server:**
-
-   ```bash
-   ssh root@$(terraform output -raw server_ip)
-   ```
+- `ssh_public_key` - Your SSH public key (required)
+- `server_type` - Default: `cx33`
+- `location` - Default: `nbg1`
 
 ## Outputs
 
-After applying, you'll see:
-
-- `server_ip` - IPv4 address to SSH into
-- `server_ipv6` - IPv6 address
-- `server_datacenter` - Where your server is located
-- `server_status` - Server status (should be "running")
-
-## Next Steps
-
-- **Exercise 14**: Add automatic Nginx installation using `user_data`
-- **Exercise 15**: Implement advanced cloud-init configuration
-- **Exercise 16**: Solve SSH known_hosts challenges
-- **Exercise 17**: Generate host metadata with modules
+- `server_ip` - IPv4 address for SSH access
+- `server_ipv6` - IPv6 address  
+- `server_datacenter` - Server location
+- `server_status` - Should be "running"
 
 ## Cleanup
-
-To destroy all resources:
 
 ```bash
 terraform destroy
 ```
-
-**Note:** This will delete your server and all associated resources!

@@ -37,7 +37,7 @@ resource "acme_certificate" "wildcard" {
     config = {
       RFC2136_NAMESERVER     = "ns1.sdi.hdm-stuttgart.cloud"
       RFC2136_TSIG_ALGORITHM = "hmac-sha512"
-      RFC2136_TSIG_KEY       = "${var.project}.key."
+      RFC2136_TSIG_KEY       = "${var.project}.key"
       RFC2136_TSIG_SECRET    = var.dns_secret
     }
   }

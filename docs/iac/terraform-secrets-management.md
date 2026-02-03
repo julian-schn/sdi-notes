@@ -15,7 +15,7 @@ The `terraform.tfvars` file contains safe-to-commit values:
 ```hcl
 # terraform.tfvars (committed to Git)
 server_base_name = "server"
-server_type      = "cx23"
+server_type      = "cx33"
 server_image     = "debian-13"
 location         = "nbg1"
 environment      = "development"
@@ -79,6 +79,7 @@ The `.gitignore` file prevents committing sensitive data:
 ```
 
 This configuration:
+
 - Ignores all `.tfvars` files by default
 - Allows `terraform.tfvars` (contains only non-sensitive data)
 - Allows example files for reference

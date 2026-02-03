@@ -35,23 +35,27 @@ The setup creates a cost-optimized Hetzner Cloud server with the following compo
 ### Environment Configuration
 
 1. Navigate to the terraform directory:
+
 ```bash
 cd terraform
 ```
 
-2. Create environment file from template:
+1. Create environment file from template:
+
 ```bash
 cp .env.example .env
 ```
 
-3. Edit `.env` with your credentials:
+1. Edit `.env` with your credentials:
+
 ```bash
 export HCLOUD_TOKEN="API_TOKEN"
 export TF_VAR_ssh_public_key="ssh-ed25519 ..." # required 
 export TF_VAR_ssh_public_key_secondary=""  # not required 
 ```
 
-4. Source the environment variables:
+1. Source the environment variables:
+
 ```bash
 source .env
 ```
@@ -59,21 +63,25 @@ source .env
 ### Terraform Deployment
 
 Initialize the working directory:
+
 ```bash
 terraform init
 ```
 
 Preview the planned changes:
+
 ```bash
 terraform plan
 ```
 
 Apply the configuration:
+
 ```bash
 terraform apply
 ```
 
 View the outputs:
+
 ```bash
 terraform output
 ```
@@ -86,7 +94,7 @@ The `terraform.tfvars` file contains the default configuration:
 
 ```hcl
 server_base_name = "server"
-server_type      = "cx23"
+server_type      = "cx33"
 server_image     = "debian-13"
 location         = "nbg1"
 environment      = "development"
@@ -95,9 +103,9 @@ project          = "hello-world"
 
 ### Server Types
 
-Servers we should use: 
+Servers we should use:
 
-- `cx23`: 2 vCPU, 4GB RAM (AMD/Intel, cost-effective)
+- `cx33`: 2 vCPU, 4GB RAM (AMD/Intel, cost-effective)
 
 ### Locations
 
@@ -125,6 +133,7 @@ The configuration supports dual SSH key deployment:
 ### Primary SSH Key
 
 Required for server access. Set via environment variable:
+
 ```bash
 export TF_VAR_ssh_public_key="ssh-ed25519..."
 ```
@@ -134,6 +143,7 @@ Creates resource named: `{project}-primary-ssh-key`
 ### Secondary SSH Key
 
 Optional for team access or backup. Set via environment variable:
+
 ```bash
 export TF_VAR_ssh_public_key_secondary="ssh-rsa..."
 ```
@@ -157,6 +167,7 @@ The configuration automatically generates server names:
 ### Public Networking
 
 All servers are configured with:
+
 - Public IPv4 address
 - Public IPv6 address
 - Full internet connectivity
@@ -164,6 +175,7 @@ All servers are configured with:
 ### Firewall Rules
 
 The firewall allows:
+
 - **Inbound**: SSH (port 22) from any IP
 - **Outbound**: All protocols and ports
 
@@ -182,6 +194,7 @@ ufw --force enable
 ```
 
 This script:
+
 - Updates system packages
 - Installs essential tools
 - Configures UFW firewall
@@ -202,6 +215,7 @@ ssh_connection = "ssh root@1.2.3.4"
 ## Cleanup
 
 To destroy all created resources:
+
 ```bash
 terraform destroy
 ```
@@ -209,5 +223,6 @@ terraform destroy
 ## State Management
 
 Terraform maintains state locally in:
+
 - `terraform.tfstate`: Current infrastructure state
 - `terraform.tfstate.backup`: Previous state backup

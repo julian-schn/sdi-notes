@@ -1,9 +1,12 @@
 # Exercise 21 - Enhancing Web Server
 # Sets up web server with Nginx and DNS records for TLS config
 
+# Get all existing SSH keys to check if our public key already exists
+data "hcloud_ssh_keys" "all" {}
+
 # Create Firewall (HTTP/HTTPS/SSH)
 resource "hcloud_firewall" "server_firewall" {
-  name  = "${var.project}-firewall"
+  name  = "${var.project}-web-server-firewall"
 
   # SSH
   rule {
@@ -50,24 +53,15 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# SSH Config - Check for existing keys first
-data "hcloud_ssh_keys" "existing" {
-  with_selector = "managed_by=terraform"
+# Data sources to lookup existing SSH keys (if reusing)
+data "hcloud_ssh_key" "existing_primary" {
+  count = var.existing_ssh_key_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_name
 }
 
-locals {
-  # Find existing SSH keys by public key fingerprint
-  existing_primary_key = try(
-    one([for k in data.hcloud_ssh_keys.existing.ssh_keys : k if k.public_key == var.ssh_public_key]),
-    null
-  )
-  existing_secondary_key = var.ssh_public_key_secondary != "" ? try(
-    one([for k in data.hcloud_ssh_keys.existing.ssh_keys : k if k.public_key == var.ssh_public_key_secondary]),
-    null
-  ) : null
-  
-  should_create_primary_key   = local.existing_primary_key == null
-  should_create_secondary_key = var.ssh_public_key_secondary != "" && local.existing_secondary_key == null
+data "hcloud_ssh_key" "existing_secondary" {
+  count = var.existing_ssh_key_secondary_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_secondary_name
 }
 
 resource "hcloud_ssh_key" "primary" {
@@ -82,7 +76,7 @@ resource "hcloud_ssh_key" "primary" {
 }
 
 resource "hcloud_ssh_key" "secondary" {
-  count      = local.should_create_secondary_key ? 1 : 0
+  count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
   name       = "${var.project}-secondary-ssh-key"
   public_key = var.ssh_public_key_secondary
   labels = {
@@ -97,12 +91,28 @@ locals {
     [var.ssh_public_key],
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
-  
-  # Use existing key ID or newly created key ID
-  primary_ssh_key_id = local.should_create_primary_key ? hcloud_ssh_key.primary[0].id : local.existing_primary_key.id
+
+  # Find existing SSH key with matching public key
+  existing_key_with_pubkey = try([
+    for key in data.hcloud_ssh_keys.all.ssh_keys :
+    key if key.public_key == var.ssh_public_key
+  ][0], null)
+
+  # Determine if we should create a new SSH key or use existing
+  should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
+
+  primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
+    local.existing_key_with_pubkey != null ? local.existing_key_with_pubkey.id : hcloud_ssh_key.primary[0].id
+  )
+
   secondary_ssh_key_id = var.ssh_public_key_secondary != "" ? (
-    local.should_create_secondary_key ? hcloud_ssh_key.secondary[0].id : local.existing_secondary_key.id
+    var.existing_ssh_key_secondary_name != "" ? data.hcloud_ssh_key.existing_secondary[0].id : hcloud_ssh_key.secondary[0].id
   ) : null
+
+  ssh_key_ids = compact(concat(
+    [local.primary_ssh_key_id],
+    local.secondary_ssh_key_id != null ? [local.secondary_ssh_key_id] : []
+  ))
 }
 
 # Server
@@ -112,10 +122,7 @@ resource "hcloud_server" "web_server" {
   server_type = var.server_type
   location    = var.location
 
-  ssh_keys = compact([
-    local.primary_ssh_key_id,
-    local.secondary_ssh_key_id
-  ])
+  ssh_keys = local.ssh_key_ids
 
   firewall_ids = [hcloud_firewall.server_firewall.id]
 

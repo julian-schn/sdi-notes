@@ -37,3 +37,9 @@ variable "ssh_public_key" {
   # Must be provided via terraform.tfvars or environment variable
   # Example: ssh_public_key = file("~/.ssh/id_ed25519.pub")
 }
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing SSH key in Hetzner Cloud to reuse (optional). If provided, no new SSH key will be created."
+  type        = string
+  default     = ""
+}

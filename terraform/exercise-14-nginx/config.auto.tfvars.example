@@ -2,6 +2,7 @@
 # Copy to config.auto.tfvars and customize values
 
 server_name  = "nginx-server"
-server_type  = "cx23"
+server_type  = "cx33"
 server_image = "debian-13"
 location     = "nbg1"
+# existing_ssh_key_name = "Base-primary-ssh-key"

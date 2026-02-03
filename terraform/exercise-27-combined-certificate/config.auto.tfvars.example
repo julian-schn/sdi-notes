@@ -4,9 +4,10 @@
 # This exercise combines certificate generation AND server creation!
 # IMPORTANT: Default uses staging certificate (browsers will show warnings)
 
-server_type      = "cx23"
+server_type      = "cx33"
 server_image     = "debian-13"
 location         = "nbg1"
+# existing_ssh_key_name = "Base-primary-ssh-key"
 devops_username  = "devops"
 environment      = "development"
 project          = "g2"

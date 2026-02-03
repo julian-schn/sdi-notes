@@ -3,7 +3,7 @@
 variable "server_type" {
   description = "Server type/size"
   type        = string
-  default     = "cx23"
+  default     = "cx33"
 }
 
 variable "server_image" {
@@ -75,4 +75,16 @@ variable "use_production" {
   description = "Use production Let's Encrypt server (false = staging)"
   type        = bool
   default     = false
+}
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  type        = string
+  default     = ""
+}
+
+variable "existing_ssh_key_secondary_name" {
+  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  type        = string
+  default     = ""
 }

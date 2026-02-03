@@ -18,10 +18,22 @@ provider "hcloud" {
   # or can be set via terraform.tfvars
 }
 
-# SSH Key Resource
+# Data source to lookup existing SSH key (if reusing)
+data "hcloud_ssh_key" "existing_primary" {
+  count = var.existing_ssh_key_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_name
+}
+
+# SSH Key Resource (conditional - only creates if not reusing existing)
 resource "hcloud_ssh_key" "primary" {
+  count      = var.existing_ssh_key_name == "" ? 1 : 0
   name       = "ssh-key"
   public_key = var.ssh_public_key
+}
+
+# Local to select the correct SSH key ID
+locals {
+  primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : hcloud_ssh_key.primary[0].id
 }
 
 # Firewall Resource - Allow SSH
@@ -73,7 +85,7 @@ resource "hcloud_server" "hello_server" {
   location    = var.location
 
   # SSH Key
-  ssh_keys = [hcloud_ssh_key.primary.id]
+  ssh_keys = [local.primary_ssh_key_id]
 
   # Firewall
   firewall_ids = [hcloud_firewall.ssh.id]

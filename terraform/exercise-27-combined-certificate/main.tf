@@ -1,13 +1,49 @@
 # Exercise 27 - Combining Certificate Generation and Server Creation
 # Complete all-in-one solution: certificate + DNS + server with SSL
 
+# Get all existing SSH keys to check if our public key already exists
+data "hcloud_ssh_keys" "all" {}
+
+# Data sources to lookup existing SSH keys (if reusing)
+data "hcloud_ssh_key" "existing_primary" {
+  count = var.existing_ssh_key_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_name
+}
+
+data "hcloud_ssh_key" "existing_secondary" {
+  count = var.existing_ssh_key_secondary_name != "" ? 1 : 0
+  name  = var.existing_ssh_key_secondary_name
+}
+
 locals {
   ssh_authorized_keys = concat(
     [var.ssh_public_key],
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
-  
+
   dns_zone_with_dot = "${var.dns_zone}."
+
+  # Find existing SSH key with matching public key
+  existing_key_with_pubkey = try([
+    for key in data.hcloud_ssh_keys.all.ssh_keys :
+    key if key.public_key == var.ssh_public_key
+  ][0], null)
+
+  # Determine if we should create a new SSH key or use existing
+  should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
+
+  primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
+    local.existing_key_with_pubkey != null ? local.existing_key_with_pubkey.id : hcloud_ssh_key.primary[0].id
+  )
+
+  secondary_ssh_key_id = var.ssh_public_key_secondary != "" ? (
+    var.existing_ssh_key_secondary_name != "" ? data.hcloud_ssh_key.existing_secondary[0].id : hcloud_ssh_key.secondary[0].id
+  ) : null
+
+  ssh_key_ids = compact(concat(
+    [local.primary_ssh_key_id],
+    local.secondary_ssh_key_id != null ? [local.secondary_ssh_key_id] : []
+  ))
 }
 
 # ============================================================================
@@ -38,7 +74,7 @@ resource "acme_certificate" "wildcard" {
     config = {
       RFC2136_NAMESERVER     = "ns1.sdi.hdm-stuttgart.cloud"
       RFC2136_TSIG_ALGORITHM = "hmac-sha512"
-      RFC2136_TSIG_KEY       = "${var.project}.key."
+      RFC2136_TSIG_KEY       = "${var.project}.key"
       RFC2136_TSIG_SECRET    = var.dns_secret
     }
   }
@@ -63,8 +99,22 @@ resource "local_file" "certificate" {
 
 # SSH Key
 resource "hcloud_ssh_key" "primary" {
+  count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-combined-ssh-key"
   public_key = var.ssh_public_key
+
+  labels = {
+    environment = var.environment
+    project     = var.project
+    managed_by  = "terraform"
+  }
+}
+
+# Secondary SSH Key Resource (optional)
+resource "hcloud_ssh_key" "secondary" {
+  count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
+  name       = "${var.project}-combined-secondary-ssh-key"
+  public_key = var.ssh_public_key_secondary
 
   labels = {
     environment = var.environment
@@ -126,7 +176,7 @@ resource "hcloud_server" "web_server" {
   server_type = var.server_type
   location    = var.location
 
-  ssh_keys     = [hcloud_ssh_key.primary.id]
+  ssh_keys     = local.ssh_key_ids
   firewall_ids = [hcloud_firewall.server_firewall.id]
 
   public_net {
@@ -162,21 +212,46 @@ resource "hcloud_server" "web_server" {
 # PART 3: DNS RECORDS
 # ============================================================================
 
-# DNS A record for apex domain
-resource "dns_a_record_set" "apex" {
-  zone      = local.dns_zone_with_dot
-  name      = "@"
-  addresses = [hcloud_server.web_server.ipv4_address]
-  ttl       = 10
+# DNS A record for apex domain - using nsupdate workaround
+# The hashicorp/dns provider doesn't support apex/root records directly
+resource "null_resource" "apex_record" {
+  depends_on = [hcloud_server.web_server]
+  
+  triggers = {
+    server_ip  = hcloud_server.web_server.ipv4_address
+    zone       = var.dns_zone
+    project    = var.project
+    dns_secret = var.dns_secret
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      echo "server ns1.sdi.hdm-stuttgart.cloud
+      update delete ${var.dns_zone}. A
+      update add ${var.dns_zone}. 10 A ${hcloud_server.web_server.ipv4_address}
+      send" | nsupdate -y "hmac-sha512:${var.project}.key:${var.dns_secret}"
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when    = destroy
+    command = <<-EOT
+      echo "server ns1.sdi.hdm-stuttgart.cloud
+      update delete ${self.triggers.zone}. A
+      send" | nsupdate -y "hmac-sha512:${self.triggers.project}.key:${self.triggers.dns_secret}" || true
+    EOT
+  }
 }
 
-# DNS A records for each server name
+# DNS A records for each server name (www, mail, etc.)
 resource "dns_a_record_set" "names" {
   count     = length(var.server_names)
   zone      = local.dns_zone_with_dot
   name      = var.server_names[count.index]
   addresses = [hcloud_server.web_server.ipv4_address]
   ttl       = 10
+  
+  depends_on = [hcloud_server.web_server]
 }
 
 # ============================================================================
@@ -184,7 +259,7 @@ resource "dns_a_record_set" "names" {
 # ============================================================================
 
 resource "null_resource" "known_hosts" {
-  depends_on = [hcloud_server.web_server, dns_a_record_set.apex]
+  depends_on = [hcloud_server.web_server, null_resource.apex_record]
 
   triggers = {
     server_ip = hcloud_server.web_server.ipv4_address
@@ -198,7 +273,7 @@ resource "null_resource" "known_hosts" {
       echo "Waiting for SSH on ${var.dns_zone}..."
       for i in {1..30}; do
         if ssh-keyscan -t ed25519 -T 5 ${var.dns_zone} 2>/dev/null | grep -q "ssh-ed25519"; then
-          ssh-keyscan -t ed25519 ${var.dns_zone} > "${path.module}/gen/known_hosts" 2>/dev/null
+          ssh-keyscan -t ed25519 -T 5 ${var.dns_zone} > "${path.module}/gen/known_hosts" 2>/dev/null
           echo "Host keys saved"
           exit 0
         fi

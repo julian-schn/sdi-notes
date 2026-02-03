@@ -5,6 +5,7 @@
 # when you're ready for a real certificate!
 
 dns_zone       = "g2.sdi.hdm-stuttgart.cloud"
+# existing_ssh_key_name = "Base-primary-ssh-key"
 project        = "g2"
 email          = "id@hdm-stuttgart.de"
 use_production = false

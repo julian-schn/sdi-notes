@@ -35,3 +35,9 @@ variable "common_name" {
   type        = string
   default     = ""  # Defaults to dns_zone if empty
 }
+
+variable "existing_ssh_key_name" {
+  description = "Name of existing primary SSH key in Hetzner Cloud (unused in this exercise, but required by Makefile)"
+  type        = string
+  default     = ""
+}

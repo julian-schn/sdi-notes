@@ -1,0 +1,163 @@
+#cloud-config
+# Exercise 29 - Gateway Server Cloud-Init Configuration with apt-cacher-ng
+
+hostname: ${hostname}
+fqdn: ${hostname}.${dns_domain_name}
+manage_etc_hosts: template
+
+# Disable password authentication and root login
+ssh_pwauth: false
+disable_root: true
+
+# Package management
+package_update: true
+package_upgrade: true
+package_reboot_if_required: true
+
+packages:
+  - ufw
+  - fail2ban
+  - plocate
+  - netcat-openbsd
+  - net-tools
+  - apt-cacher-ng
+
+# User configuration
+users:
+  - default
+  - name: ${devops_username}
+    groups: [sudo]
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    lock_passwd: true
+    ssh_authorized_keys:
+%{ for key in ssh_authorized_keys ~}
+      - ${key}
+%{~ endfor ~}
+
+# Write configuration files
+write_files:
+  # SSH hardening configuration
+  - path: /etc/ssh/sshd_config.d/99-hardening.conf
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      PubkeyAuthentication yes
+
+  # Fail2ban configuration
+  - path: /etc/fail2ban/jail.local
+    content: |
+      [DEFAULT]
+      banaction = ufw
+      backend = systemd
+      maxretry = 5
+      findtime = 10m
+      bantime = 10m
+      ignoreip = 127.0.0.1/8 ::1 ${gateway_private_ip}/32 ${intern_private_ip}/32
+
+      [sshd]
+      enabled = true
+
+  # apt-cacher-ng configuration - listen on internal interface only
+  - path: /etc/apt-cacher-ng/zz_local.conf
+    content: |
+      # Listen only on internal network interface for security
+      BindAddress: ${gateway_private_ip}
+      Port: 3142
+
+      # Cache directory
+      CacheDir: /var/cache/apt-cacher-ng
+
+      # Log directory
+      LogDir: /var/log/apt-cacher-ng
+
+      # Disable user ports for security
+      AllowUserPorts: 0
+
+      # Disable report page for security
+      ReportPage: acng-report.html
+
+      # Keep cached packages for 30 days
+      ExThreshold: 30
+
+      # Verbose logging for troubleshooting
+      VerboseLog: 1
+
+      # Allow connections from private subnet
+      # (no explicit ACL needed since we bind to private interface)
+
+  # Custom hosts template for DNS resolution
+  - path: /etc/cloud/templates/hosts.debian.tmpl
+    content: |
+      ## template:jinja
+      {#
+      This file /etc/cloud/templates/hosts.debian.tmpl is only utilized
+      if enabled in cloud-config.  Specifically, in order to enable it
+      you need to add the following to config:
+        manage_etc_hosts: template
+      -#}
+      127.0.1.1 {{fqdn}} {{hostname}}
+      127.0.0.1 localhost
+
+      ${gateway_private_ip} gateway.${dns_domain_name} gateway
+      ${intern_private_ip} intern.${dns_domain_name} intern
+
+      # The following lines are desirable for IPv6 capable hosts
+      ::1 localhost ip6-localhost ip6-loopback
+      ff02::1 ip6-allnodes
+      ff02::2 ip6-allrouters
+
+  # MOTD with proxy information
+  - path: /etc/motd
+    content: |
+      ================================================================================
+      Gateway Server with apt-cacher-ng HTTP Proxy
+      ================================================================================
+
+      This gateway provides:
+        - SSH access from Internet
+        - Private network connectivity (${gateway_private_ip})
+        - HTTP proxy for internal hosts (apt-cacher-ng on port 3142)
+
+      apt-cacher-ng proxy: http://${gateway_private_ip}:3142
+
+      Cache location: /var/cache/apt-cacher-ng
+      Logs: /var/log/apt-cacher-ng/
+
+      Check status: systemctl status apt-cacher-ng
+      View cache:   ls -lh /var/cache/apt-cacher-ng/
+      ================================================================================
+
+# Commands to run after boot
+runcmd:
+  # Update system packages
+  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
+
+  # Restart SSH service with new configuration
+  - [systemctl, restart, ssh]
+
+  # Configure UFW firewall
+  - [bash, -lc, "ufw default deny incoming"]
+  - [bash, -lc, "ufw default allow outgoing"]
+  - [bash, -lc, "ufw allow 22/tcp"]
+  - [bash, -lc, "ufw allow from 10.0.1.0/24 to any port 3142 proto tcp comment 'apt-cacher-ng from private network'"]
+  - [bash, -lc, "ufw --force enable"]
+
+  # Enable and start fail2ban
+  - [systemctl, enable, --now, fail2ban]
+
+  # Enable and start plocate
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
+  - [plocate-updatedb]
+
+  # Restart apt-cacher-ng with new configuration
+  - [systemctl, restart, apt-cacher-ng]
+  - [systemctl, enable, apt-cacher-ng]
+
+  # Wait a moment for service to fully start
+  - [sleep, "5"]
+
+  # Verify apt-cacher-ng is listening
+  - [bash, -lc, "ss -tlnp | grep 3142 || echo 'WARNING: apt-cacher-ng not listening on port 3142'"]
+
+# Final message
+final_message: "Gateway server with apt-cacher-ng is ready after $UPTIME seconds"

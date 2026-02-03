@@ -51,12 +51,21 @@ resource "null_resource" "root_record" {
   }
 }
 
-# 3. Aliases (CNAMEs pointing to workhorse)
+# 3. Delay after A record creation to avoid DNS provider race condition
+resource "time_sleep" "wait_after_a_record" {
+  create_duration = "2s"
+  depends_on      = [dns_a_record_set.workhorse]
+}
+
+# 4. Aliases (CNAMEs pointing to workhorse)
+# Created sequentially using for_each to avoid parallel creation issues
 resource "dns_cname_record" "aliases" {
-  count = length(var.server_aliases)
+  for_each = toset(var.server_aliases)
 
   zone  = local.dns_zone_with_dot
-  name  = var.server_aliases[count.index]
+  name  = each.value
   cname = "${var.server_name}.${var.dns_zone}."
   ttl   = 10
+
+  depends_on = [time_sleep.wait_after_a_record]
 }

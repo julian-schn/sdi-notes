@@ -175,8 +175,8 @@ setup_exercise() {
             read -p "  Enter value [$default]: " value < /dev/tty
             value="${value:-$default}"
             
-            # Output: don't quote numbers, booleans, or lists
-            if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" =~ ^(true|false)$ ]] || [[ "$value" =~ ^\[.*\]$ ]]; then
+            # Output: don't quote numbers, booleans, lists, or objects
+            if [[ "$value" =~ ^[0-9]+$ ]] || [[ "$value" =~ ^(true|false)$ ]] || [[ "$value" =~ ^\[.*\]$ ]] || [[ "$value" =~ ^\{.*\}$ ]]; then
                 output+="$key = $value"$'\n'
             else
                 output+="$key = \"$value\""$'\n'
