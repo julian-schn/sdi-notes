@@ -63,7 +63,9 @@ export default defineConfig({
                 { text: '24 - Fixed Server Count', link: '/exercises/24-multiple-servers' },
                 { text: '25 - Web Certificate', link: '/exercises/25-web-certificate' },
                 { text: '26 - Testing Certificate', link: '/exercises/26-testing-certificate' },
-                { text: '27 - Combined Setup', link: '/exercises/27-combined-setup' }
+                { text: '27 - Combined Setup', link: '/exercises/27-combined-setup' },
+                { text: '28 - Subnet', link: '/exercises/28-subnet' },
+                { text: '29 - Application Gateway', link: '/exercises/29-app-gateway' }
               ]
             }
           ]

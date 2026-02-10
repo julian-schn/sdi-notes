@@ -32,3 +32,5 @@ This section contains hands-on exercises for the Software Defined Infrastructure
 - [Exercise 25 - Web Certificate](./25-web-certificate)
 - [Exercise 26 - Testing Certificate](./26-testing-certificate)
 - [Exercise 27 - Combined Setup](./27-combined-setup)
+- [Exercise 28 - Subnet](./28-subnet)
+- [Exercise 29 - Application Gateway](./29-app-gateway)
