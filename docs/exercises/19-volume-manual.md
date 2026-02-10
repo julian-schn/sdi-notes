@@ -1,67 +1,55 @@
-# 19 - Partitions and Mounting (Manual)
+# 19 - Volumes (Manual Setup)
 
 > **Working Code:** [`terraform/exercise-19-volume-manual/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-19-volume-manual/)
 
-**The Problem:** Servers are ephemeral. If you delete the server, the data on its local disk is gone.
+**The Problem:** Server local disks are ephemeral. Delete the server, lose the data.
 
-**The Solution:** Use an external **Volume** (Block Storage). It survives server deletion and can be re-attached to a new server.
+**The Solution:** Use external Volume (block storage) that survives server deletion.
 
 ## Objective
-Attach a 10GB volume to a server, then manually partition, format, and mount it.
+Attach 10GB volume and manually partition, format, and mount it.
 
 ## How-to
 
-### 1. Terraform: Create & Attach
-Define the volume and attach it to your server:
-
+### 1. Create & Attach Volume
 ```hcl
 resource "hcloud_volume" "web_data" {
-  name      = "web-data"
-  size      = 10
-  location  = "hel1"
+  name     = "web-data"
+  size     = 10
+  location = "hel1"
 }
 
 resource "hcloud_volume_attachment" "main" {
   volume_id = hcloud_volume.web_data.id
   server_id = hcloud_server.web.id
-  automount = false  # We want to do it manually!
+  automount = false
 }
 ```
 
 ### 2. Manual Setup (SSH)
-After `terraform apply`, SSH into the server to set up the disk.
+After `terraform apply`, SSH into server:
 
-**Find the disk:**
 ```bash
-lsblk
-# You'll likely see /dev/sdb of size 10G
-```
+# Find disk
+lsblk  # Usually /dev/sdb
 
-**Partition it (fdisk):**
-```bash
+# Partition with fdisk
 fdisk /dev/sdb
-# Type 'n' (new), 'p' (primary), '1', enter, enter.
-# Type 'w' (write).
-```
+# n, p, 1, enter, enter, w
 
-**Format it (ext4):**
-```bash
+# Format
 mkfs.ext4 /dev/sdb1
-```
 
-**Mount it:**
-```bash
+# Mount
 mkdir /mnt/data
 mount /dev/sdb1 /mnt/data
 ```
 
-### 3. Verification
-Write a file:
+### 3. Test Persistence
 ```bash
 echo "Important Data" > /mnt/data/file.txt
+# Destroy server but keep volume → data survives!
 ```
 
-Now, if you destroy the server but keep the volume, your "Important Data" is safe.
-
 ## Related Exercises
-- [20 - Volume Auto](./20-volume-auto.md) - Automating this entire process with Cloud-Init
+- [20 - Volume Auto](./20-volume-auto.md)

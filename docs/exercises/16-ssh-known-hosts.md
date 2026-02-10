@@ -1,33 +1,26 @@
-# 16 - Solving the ~/.ssh/known_hosts Quirk
+# 16 - Solving the known_hosts Quirk
 
 > **Working Code:** [`terraform/exercise-16-known-hosts/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-16-known-hosts/)
 
-**The Problem:** Every time you destroy/recreate a server, it gets a new host key. If the IP stays the same, SSH freaks out: `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED` and blocks you.
+**The Problem:** Every time you recreate a server with the same IP, SSH complains: `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED`.
 
-**The Solution:** Use a project-specific `known_hosts` file and a wrapper script. Don't pollute your global `~/.ssh/known_hosts`.
+**The Solution:** Use a project-specific `known_hosts` file and wrapper script. Don't pollute your global `~/.ssh/known_hosts`.
 
 ## Objective
-Generate a script `./terraform/bin/ssh` that uses a local `known_hosts` file, so you can connect without warnings.
+Generate `./bin/ssh` that uses a local `known_hosts` file for warning-free connections.
 
 ## How-to
 
-### 1. The Wrapper Template (`tpl/ssh.sh`)
-This script tells SSH to use a local known_hosts file instead of your global one:
-
+### 1. Wrapper Template
 ```bash
 #!/usr/bin/env bash
 GEN_DIR=$(dirname "$0")/../gen
 ssh -o UserKnownHostsFile="$GEN_DIR/known_hosts" ${devopsUsername}@${ip} "$@"
 ```
 
-### 2. The Terraform Config
-We need Terraform to do three things:
-1. Create the server.
-2. Scan its key and save it to `gen/known_hosts`.
-3. Fill in the template and save it to `bin/ssh`.
-
+### 2. Terraform Config
 ```hcl
-# Scan the key (requires the server to be up!)
+# Scan host key
 resource "null_resource" "known_hosts" {
   triggers = { server_ip = hcloud_server.web.ipv4_address }
   provisioner "local-exec" {
@@ -35,7 +28,7 @@ resource "null_resource" "known_hosts" {
   }
 }
 
-# Create the wrapper script
+# Create wrapper
 resource "local_file" "ssh_script" {
   content = templatefile("tpl/ssh.sh", {
     ip = hcloud_server.web.ipv4_address
@@ -46,14 +39,10 @@ resource "local_file" "ssh_script" {
 }
 ```
 
-### 3. Usage
-Apply, then connect using your new script:
-
+## Usage
 ```bash
-./terraform/bin/ssh
+./bin/ssh  # No warnings, even after 100 recreates
 ```
 
-No more warnings, even if you destroy and recreate the server 100 times.
-
 ## Related Exercises
-- [18 - SSH Module](./18-ssh-module.md) - Wrapping this logic into a module so you don't have to copy-paste it
+- [18 - SSH Module](./18-ssh-module.md)
