@@ -1,87 +1,85 @@
-# 25 - Creating a Web Certificate
+# 25 - Certificates as Code
 
 > **Working Code:** [`terraform/exercise-25-web-certificate/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-25-web-certificate/)
 
-## Overview
-Use Terraform to generate wildcard certificates from Let's Encrypt via the ACME provider, supporting both the zone apex and wildcard subdomains.
+**The Problem:** Running Certbot on the server (Exercise 21) works, but the certificate lives *on the server*. If the server dies, the cert is gone. Also, automating the renewal logic inside the server is just another moving part to break.
 
-## Prerequisites
-- Access to DNS zone with dynamic update capability
-- Understanding of ACME DNS-01 challenge
-- Familiarity with TLS certificate concepts
+**The Solution:** Use the Terraform `acme` provider to request the certificate **locally** on your machine (or CI runner) and store it. Then, upload it to any server that needs it.
 
 ## Objective
-Generate a wildcard certificate for your DNS zone using the ACME provider with DNS-01 challenge (RFC2136).
+Generate a **wildcard certificate** (`*.g3.sdi.hdm-stuttgart.cloud`) using Terraform and the ACME (Let's Encrypt) provider.
 
-::: danger Rate Limits
-During configuration **always use the staging URL** `https://acme-staging-v02.api.letsencrypt.org/directory` rather than `https://acme-v02.api.letsencrypt.org/directory` for generating certificates. There are rate limits!
-:::
+## How-to
 
-## Implementation
+### 1. The ACME Provider
+This provider talks to Let's Encrypt for you.
 
-### Step 1: Provider Configuration
-Configure the ACME provider with required version:
-
-::: danger Version Requirement
-Due to a DNS provider related issue you must use at least acme provider version `v2.23.2`. You are best off not specifying any version at all receiving the latest release automatically:
+::: danger Use Staging!
+Always use the `acme-staging` URL while developing. Production Let's Encrypt has strict rate limits (5 per week!).
 :::
 
 ```hcl
-terraform {
-  required_providers {
-    hcloud = {
-      source = "hetznercloud/hcloud"
-    }
-    acme = {
-      source  = "vancluever/acme"
-    }
-  }
-  required_version = ">= 0.13"
+provider "acme" {
+  server_url = "https://acme-staging-v02.api.letsencrypt.org/directory"
 }
 ```
 
-### Step 2: Certificate Configuration
-Create a wildcard certificate covering:
-1. The zone apex e.g., `g3.sdi.hdm-stuttgart.cloud`
-2. A wildcard certificate `*.g3.sdi.hdm-stuttgart.cloud` covering arbitrary hosts like:
-   - `www.g3.sdi.hdm-stuttgart.cloud`
-   - `mail.g3.sdi.hdm-stuttgart.cloud`
+### 2. Register Account
+You need an account key (just like when running certbot manually):
 
-Use the `subject_alternative_names` attribute for multiple domains.
+```hcl
+resource "tls_private_key" "reg_private_key" {
+  algorithm = "RSA"
+}
 
-### Step 3: Export Certificate Files
-The subsequent web server certificate installation requires two files:
-1. Private key file e.g. `private.pem`
-2. Wildcard certificate key file e.g. `certificate.pem`
+resource "acme_registration" "reg" {
+  account_key_pem = tls_private_key.reg_private_key.private_key_pem
+  email_address   = "devops@example.com"
+}
+```
 
-Use resource `local_file` for generating this key pair in a sub folder `gen` of your current project.
+### 3. Request Certificate (DNS Challenge)
+This is the magic part. Terraform will:
+1. Ask Let's Encrypt for a cert.
+2. LE will say "Prove you own this domain by setting a DNS TXT record".
+3. Terraform will **automatically create that DNS record** using your DNS provider config.
+4. LE creates the cert.
+5. Terraform cleans up the DNS record.
 
-### Example Configuration Pattern
-Follow the `acme_certificate` documentation using "rfc2136 provider configuration" as your DNS provider.
+```hcl
+resource "acme_certificate" "cert" {
+  account_key_pem = acme_registration.reg.account_key_pem
+  common_name     = "*.g3.sdi.hdm-stuttgart.cloud"
+  
+  dns_challenge {
+    provider = "rfc2136" # Generic DNS update (TSIG)
+    config = {
+      RFC2136_NAMESERVER = "ns1.sdi.hdm-stuttgart.cloud"
+      # ... keys ...
+    }
+  }
+}
+```
+
+### 4. Save to Disk
+Save the resulting files so you can inspect them:
+
+```hcl
+resource "local_file" "cert" {
+  content  = "${acme_certificate.certificate.certificate_pem}${acme_certificate.certificate.issuer_pem}"
+  filename = "gen/fullchain.pem"
+}
+
+resource "local_file" "key" {
+  content  = acme_certificate.certificate.private_key_pem
+  filename = "gen/privkey.pem"
+}
+```
 
 ## Verification
-1. Initialize Terraform: `terraform init`
-2. Apply with staging URL: `terraform apply`
-3. Verify certificate files created:
-   ```bash
-   ls -la gen/private.pem gen/certificate.pem
-   ```
-4. Inspect certificate:
-   ```bash
-   openssl x509 -in gen/certificate.pem -text -noout
-   ```
-5. Verify subject alternative names include both apex and wildcard
-
-## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
+1. `terraform apply` -> Watch the "Challenges" log messages.
+2. `ls gen/` -> You should see your `.pem` files.
+3. `openssl x509 -in gen/fullchain.pem -text -noout` -> Check the details (Issuer should be "Fake LE").
 
 ## Related Exercises
-- [26 - Testing Certificate](./26-testing-certificate.md) - Installing and testing the certificate
-- [27 - Combined Setup](./27-combined-setup.md) - Integrating certificate with server creation
+- [26 - Testing Certificate](./26-testing-certificate.md) - Actually using these files on a server
