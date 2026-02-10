@@ -5,12 +5,10 @@
 hostname: ${server_name}
 fqdn: ${server_name}
 
-# Update and upgrade packages on first boot
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
 
-# Install essential packages
 packages:
   - nginx
   - ufw
@@ -22,12 +20,10 @@ packages:
   - vim
   - plocate
 
-# Disable SSH password authentication
 ssh_pwauth: false
-# Disable root login (use devops user instead)
+
 disable_root: true
 
-# Create users
 users:
   - default
   - name: ${devops_username}
@@ -41,9 +37,8 @@ users:
       - ${key}
 %{~ endfor ~}
 
-# Write configuration files
 write_files:
-  # SSH hardening configuration
+
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     owner: root:root
     permissions: "0644"
@@ -54,7 +49,6 @@ write_files:
       ChallengeResponseAuthentication no
       UsePAM yes
 
-  # Fail2ban configuration
   - path: /etc/fail2ban/jail.local
     owner: root:root
     permissions: "0644"
@@ -73,7 +67,6 @@ write_files:
       port = ssh
       logpath = %(sshd_log)s
 
-  # Script to render custom Nginx landing page
   - path: /usr/local/bin/render-index.sh
     owner: root:root
     permissions: "0755"
@@ -83,34 +76,26 @@ write_files:
       ts=$(date -u +"%a %b %e %I:%M:%S %p %Z %Y")
       echo "I'm Nginx @ \"$ip\" created $ts" > /var/www/html/index.html
 
-# Commands to run on first boot
 runcmd:
-  # Final system upgrade
+
   - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
-  # Reload and restart SSH with new configuration
   - [systemctl, daemon-reload]
   - [systemctl, restart, ssh]
 
-  # Configure UFW firewall
   - [bash, -lc, "ufw default deny incoming"]
   - [bash, -lc, "ufw default allow outgoing"]
   - [bash, -lc, "ufw allow 22/tcp"]
   - [bash, -lc, "ufw allow 80/tcp"]
   - [bash, -lc, "ufw --force enable"]
 
-  # Enable and start Nginx
   - [systemctl, enable, --now, nginx]
 
-  # Enable and start Fail2ban
   - [systemctl, enable, --now, fail2ban]
 
-  # Render custom landing page
   - [bash, -lc, "/usr/local/bin/render-index.sh"]
 
-  # Restart Fail2ban to pick up configuration
   - [systemctl, restart, fail2ban]
 
-  # Enable and run plocate database update
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
   - [bash, -lc, "plocate-updatedb"]

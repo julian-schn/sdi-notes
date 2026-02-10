@@ -17,12 +17,9 @@ terraform {
   }
 }
 
-# Configure the Hetzner Cloud Provider
 provider "hcloud" {
-  # Token should be provided via HCLOUD_TOKEN env var
 }
 
-# Configure the HDM Stuttgart DNS Provider
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"

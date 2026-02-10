@@ -1,21 +1,16 @@
 # Exercise 29 - Adding an Application Level Gateway
 # Extends Exercise 28 by adding apt-cacher-ng HTTP proxy for package management
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
-# ============================================================================
-# LOCAL VALUES
-# ============================================================================
+# --- LOCAL VALUES ---
 
 locals {
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -37,11 +32,8 @@ locals {
   )
 }
 
-# ============================================================================
-# SSH KEYS
-# ============================================================================
+# --- SSH KEYS ---
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -76,9 +68,7 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# ============================================================================
-# PRIMARY IP FOR GATEWAY
-# ============================================================================
+# --- PRIMARY IP FOR GATEWAY ---
 
 resource "hcloud_primary_ip" "gateway_ip" {
   name          = "${var.project}-gateway-ip"
@@ -94,9 +84,7 @@ resource "hcloud_primary_ip" "gateway_ip" {
   }
 }
 
-# ============================================================================
-# PRIVATE NETWORK
-# ============================================================================
+# --- PRIVATE NETWORK ---
 
 resource "hcloud_network" "private_net" {
   name     = "${var.project}-${var.private_network.name}"
@@ -126,9 +114,7 @@ resource "hcloud_network_route" "gateway_route" {
   depends_on = [hcloud_network_subnet.private_subnet]
 }
 
-# ============================================================================
-# FIREWALLS
-# ============================================================================
+# --- FIREWALLS ---
 
 # Gateway Firewall - SSH from Internet + apt-cacher-ng from private network
 resource "hcloud_firewall" "gateway_firewall" {
@@ -144,7 +130,6 @@ resource "hcloud_firewall" "gateway_firewall" {
     ]
   }
 
-  # Allow all outbound traffic
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -194,7 +179,6 @@ resource "hcloud_firewall" "intern_firewall" {
     ]
   }
 
-  # Allow all outbound (for apt-cacher-ng proxy)
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -231,9 +215,7 @@ resource "hcloud_firewall" "intern_firewall" {
   }
 }
 
-# ============================================================================
-# SERVERS
-# ============================================================================
+# --- SERVERS ---
 
 # Gateway Server - Dual interface with apt-cacher-ng
 resource "hcloud_server" "gateway" {
@@ -281,16 +263,12 @@ resource "hcloud_server" "gateway" {
   ]
 }
 
-# ============================================================================
-# SERVICE READY WAIT
-# ============================================================================
+# --- SERVICE READY WAIT ---
 # Note: Service readiness is now handled by cloud-init on the intern server.
 # The intern's cloud-init will wait for apt-cacher-ng to be available on the
 # gateway before attempting package operations.
 
-# ============================================================================
-# INTERNAL SERVER
-# ============================================================================
+# --- INTERNAL SERVER ---
 
 # Internal Server - Private interface only with apt proxy configuration
 resource "hcloud_server" "intern" {

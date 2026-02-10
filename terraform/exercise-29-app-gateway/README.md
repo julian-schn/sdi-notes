@@ -1,6 +1,6 @@
 # Exercise 29 - Application Gateway
 
-> **Full Guide:** [docs/exercises/29-app-gateway.md](../../docs/exercises/29-app-gateway.md) *(if available)*
+> **Full Guide:** [docs/exercises/29-app-gateway.md](../../docs/exercises/29-app-gateway.md)
 
 ## Quick Start
 

@@ -11,7 +11,6 @@ terraform {
   }
 }
 
-# Generate deployment-scoped known_hosts file
 resource "null_resource" "known_hosts" {
   triggers = {
     server_ip = var.server_ip
@@ -22,7 +21,6 @@ resource "null_resource" "known_hosts" {
       set -euo pipefail
       mkdir -p "${path.root}/gen"
       
-      # Wait for SSH to be ready and scan host keys
       echo "Waiting for SSH to be ready on ${var.server_ip}..."
       for i in {1..30}; do
         if ssh-keyscan -t ed25519 -T 5 ${var.server_ip} 2>/dev/null | grep -q "ssh-ed25519"; then
@@ -41,7 +39,6 @@ resource "null_resource" "known_hosts" {
   }
 }
 
-# SSH wrapper script
 resource "local_file" "ssh_wrapper" {
   content = templatefile("${path.module}/tpl/ssh.sh", {
     devopsUsername = var.devops_username
@@ -53,7 +50,6 @@ resource "local_file" "ssh_wrapper" {
   directory_permission = "0755"
 }
 
-# SCP wrapper script
 resource "local_file" "scp_wrapper" {
   content = templatefile("${path.module}/tpl/scp.sh", {
     devopsUsername = var.devops_username

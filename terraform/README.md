@@ -528,36 +528,6 @@ terraform init -upgrade
 - Check firewall: `sudo ufw status`
 - Verify SSH key is correct
 
-## Next Steps
-
-After completing all exercises:
-
-1. **Add More Modules** - Create modules for common patterns
-2. **Remote State** - Use S3 or Terraform Cloud for state storage
-3. **Workspaces** - Manage multiple environments (dev, staging, prod)
-4. **CI/CD Pipeline** - Automate with GitHub Actions or GitLab CI
-5. **Testing** - Add Terratest for automated testing
-6. **Multi-Cloud** - Extend to AWS, Azure, or GCP
-7. **Kubernetes** - Deploy K3s cluster with Terraform
-
-## Resources
-
-### Official Documentation
-
-- [Terraform Documentation](https://www.terraform.io/docs)
-- [Hetzner Cloud Provider](https://registry.terraform.io/providers/hetznercloud/hcloud/latest/docs)
-- [Cloud-init Documentation](https://cloudinit.readthedocs.io/)
-
-### Terraform Learning
-
-- [HashiCorp Learn](https://learn.hashicorp.com/terraform)
-- [Terraform Best Practices](https://www.terraform-best-practices.com/)
-
-### Hetzner Cloud
-
-- [Hetzner Cloud API](https://docs.hetzner.cloud/)
-- [Hetzner Cloud Console](https://console.hetzner.cloud/)
-
 ## License
 
 This is educational material for the Software Defined Infrastructure course.

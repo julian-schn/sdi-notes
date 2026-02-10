@@ -38,7 +38,7 @@ variable "server_aliases" {
 }
 
 variable "existing_ssh_key_name" {
-  description = "Name of existing primary SSH key in Hetzner Cloud (optional, unused in this exercise)"
+  description = "Existing primary SSH key name (unused in this exercise)"
   type        = string
   default     = ""
 }

@@ -53,7 +53,7 @@ variable "ssh_public_key" {
 }
 
 variable "ssh_public_key_secondary" {
-  description = "Secondary SSH public key for server access (optional)"
+  description = "Secondary SSH public key"
   type        = string
   default     = ""
 }
@@ -94,13 +94,13 @@ variable "dns_secret" {
 }
 
 variable "existing_ssh_key_name" {
-  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  description = "Reuse existing primary SSH key by name (skips creation)"
   type        = string
   default     = ""
 }
 
 variable "existing_ssh_key_secondary_name" {
-  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  description = "Reuse existing secondary SSH key by name (skips creation)"
   type        = string
   default     = ""
 }

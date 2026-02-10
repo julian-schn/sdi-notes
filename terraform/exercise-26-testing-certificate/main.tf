@@ -1,10 +1,8 @@
 # Exercise 26 - Testing Your Web Certificate
 # Self-contained: Generates certificate AND creates server with Nginx SSL
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -23,13 +21,11 @@ locals {
 
   dns_zone_with_dot = "${var.dns_zone}."
 
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -46,9 +42,7 @@ locals {
   ))
 }
 
-# ============================================================================
-# PART 1: CERTIFICATE GENERATION
-# ============================================================================
+# --- PART 1: CERTIFICATE GENERATION ---
 
 # Private key for ACME registration
 resource "tls_private_key" "acme_registration" {
@@ -93,11 +87,8 @@ resource "local_file" "certificate" {
   file_permission = "0644"
 }
 
-# ============================================================================
-# PART 2: SERVER INFRASTRUCTURE
-# ============================================================================
+# --- PART 2: SERVER INFRASTRUCTURE ---
 
-# SSH Key
 resource "hcloud_ssh_key" "primary" {
   count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-ssl-test-ssh-key"
@@ -110,7 +101,6 @@ resource "hcloud_ssh_key" "primary" {
   }
 }
 
-# Secondary SSH Key Resource (optional)
 resource "hcloud_ssh_key" "secondary" {
   count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
   name       = "${var.project}-ssl-test-secondary-ssh-key"
@@ -123,11 +113,9 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# Firewall
 resource "hcloud_firewall" "server_firewall" {
   name = "${var.project}-ssl-test-firewall"
 
-  # SSH access
   rule {
     direction  = "in"
     port       = "22"
@@ -135,7 +123,6 @@ resource "hcloud_firewall" "server_firewall" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTP access
   rule {
     direction  = "in"
     port       = "80"
@@ -143,7 +130,6 @@ resource "hcloud_firewall" "server_firewall" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTPS access
   rule {
     direction  = "in"
     port       = "443"
@@ -151,7 +137,6 @@ resource "hcloud_firewall" "server_firewall" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
-  # Outbound
   rule {
     direction       = "out"
     protocol        = "tcp"
@@ -212,9 +197,7 @@ resource "hcloud_server" "web_server" {
   }
 }
 
-# ============================================================================
-# PART 3: DNS RECORDS
-# ============================================================================
+# --- PART 3: DNS RECORDS ---
 
 # DNS A record for apex domain - using nsupdate workaround
 # The hashicorp/dns provider doesn't support apex/root records directly
@@ -258,9 +241,7 @@ resource "dns_a_record_set" "names" {
   depends_on = [hcloud_server.web_server]
 }
 
-# ============================================================================
-# PART 4: SSH HELPERS
-# ============================================================================
+# --- PART 4: SSH HELPERS ---
 
 resource "null_resource" "known_hosts" {
   depends_on = [hcloud_server.web_server, null_resource.apex_record]

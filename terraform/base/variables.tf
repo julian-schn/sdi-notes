@@ -39,7 +39,7 @@ variable "ssh_public_key" {
 }
 
 variable "existing_ssh_key_name" {
-  description = "Name of existing SSH key in Hetzner Cloud to reuse (optional). If provided, no new SSH key will be created."
+  description = "Reuse existing SSH key by name (skips creation)"
   type        = string
   default     = ""
 }

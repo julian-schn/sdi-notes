@@ -5,11 +5,9 @@ hostname: ${hostname}
 fqdn: ${hostname}.${dns_domain_name}
 manage_etc_hosts: template
 
-# Disable password authentication and root login
 ssh_pwauth: false
 disable_root: true
 
-# Package management
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
@@ -22,7 +20,6 @@ packages:
   - net-tools
   - apt-cacher-ng
 
-# User configuration
 users:
   - default
   - name: ${devops_username}
@@ -34,16 +31,13 @@ users:
       - ${key}
 %{~ endfor ~}
 
-# Write configuration files
 write_files:
-  # SSH hardening configuration
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     content: |
       PasswordAuthentication no
       PermitRootLogin no
       PubkeyAuthentication yes
 
-  # Fail2ban configuration
   - path: /etc/fail2ban/jail.local
     content: |
       [DEFAULT]
@@ -127,25 +121,19 @@ write_files:
       View cache:   ls -lh /var/cache/apt-cacher-ng/
       ================================================================================
 
-# Commands to run after boot
 runcmd:
-  # Update system packages
   - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
-  # Restart SSH service with new configuration
   - [systemctl, restart, ssh]
 
-  # Configure UFW firewall
   - [bash, -lc, "ufw default deny incoming"]
   - [bash, -lc, "ufw default allow outgoing"]
   - [bash, -lc, "ufw allow 22/tcp"]
   - [bash, -lc, "ufw allow from 10.0.1.0/24 to any port 3142 proto tcp comment 'apt-cacher-ng from private network'"]
   - [bash, -lc, "ufw --force enable"]
 
-  # Enable and start fail2ban
   - [systemctl, enable, --now, fail2ban]
 
-  # Enable and start plocate
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
   - [plocate-updatedb]
 
@@ -159,5 +147,4 @@ runcmd:
   # Verify apt-cacher-ng is listening
   - [bash, -lc, "ss -tlnp | grep 3142 || echo 'WARNING: apt-cacher-ng not listening on port 3142'"]
 
-# Final message
 final_message: "Gateway server with apt-cacher-ng is ready after $UPTIME seconds"

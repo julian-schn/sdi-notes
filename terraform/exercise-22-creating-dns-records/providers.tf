@@ -20,7 +20,6 @@ terraform {
   }
 }
 
-# Configure the DNS provider for HDM Stuttgart DNS server
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"

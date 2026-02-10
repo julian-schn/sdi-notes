@@ -1,7 +1,6 @@
 # Exercise 15 - Cloud-init Configuration
 # Builds on Exercise 14 by replacing simple bash script with cloud-init
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
 terraform {
@@ -15,12 +14,8 @@ terraform {
   }
 }
 
-# Configure the Hetzner Cloud Provider
-provider "hcloud" {
-  # Token is automatically read from HCLOUD_TOKEN environment variable
-}
+provider "hcloud" {}
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -31,7 +26,6 @@ data "hcloud_ssh_key" "existing_secondary" {
   name  = var.existing_ssh_key_secondary_name
 }
 
-# Primary SSH Key Resource (conditional - only creates if not reusing existing)
 resource "hcloud_ssh_key" "primary" {
   count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-primary-ssh-key"
@@ -57,11 +51,9 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# Firewall for this exercise
 resource "hcloud_firewall" "server_firewall" {
   name = "${var.project}-cloud-init-firewall"
 
-  # SSH access
   rule {
     direction = "in"
     port      = "22"
@@ -72,7 +64,6 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
-  # HTTP access
   rule {
     direction = "in"
     port      = "80"
@@ -83,7 +74,6 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
-  # Allow all outbound traffic
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -111,15 +101,12 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Local values for SSH keys
 locals {
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -141,40 +128,33 @@ locals {
   )
 }
 
-# Hetzner Cloud Server Resource with Cloud-init
 resource "hcloud_server" "main_server" {
   name        = var.server_name
   image       = var.server_image
   server_type = var.server_type
   location    = var.location
 
-  # SSH Keys
   ssh_keys = local.ssh_key_ids
 
-  # Firewall
   firewall_ids = [hcloud_firewall.server_firewall.id]
 
-  # Network configuration
   public_net {
     ipv4_enabled = true
     ipv6_enabled = true
   }
 
-  # Labels for resource management
   labels = {
     environment = var.environment
     project     = var.project
     managed_by  = "terraform"
   }
 
-  # NEW: Cloud-init configuration with template
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     server_name     = var.server_name
     ssh_public_keys = local.ssh_authorized_keys
     devops_username = var.devops_username
   })
 
-  # Lifecycle management
   lifecycle {
     create_before_destroy = true
   }
