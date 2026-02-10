@@ -1,65 +1,64 @@
-# 27 - Combining Certificate Generation and Server Creation
+# 27 - Combined Setup (Certificate + Server)
 
 > **Working Code:** [`terraform/exercise-27-combined-certificate/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-27-combined-certificate/)
 
-## Overview
-Combine certificate generation and server creation into one Terraform configuration for a fully automated HTTPS-enabled web server deployment.
+**The Problem:** Generating cert → SCP to server → configure Nginx → restart... too much manual work.
 
-## Prerequisites
-- Completed [Exercise 25 - Web Certificate](./25-web-certificate.md)
-- Completed [Exercise 26 - Testing Certificate](./26-testing-certificate.md)
-- Understanding of Terraform dependencies and ordering
+**The Solution:** Use Terraform dependencies and cloud-init to do it all in one `terraform apply`.
 
 ## Objective
-Combine the certificate generation from Exercise 25 and the server creation/configuration from Exercise 26 into one cohesive Terraform configuration.
+One command that:
+1. Generates certificate (ACME)
+2. Spawns server (HCloud)
+3. Injects cert during boot (Cloud-Init)
+4. Configures Nginx
 
-## Implementation
+## How-to
 
-### Integration Strategy
-Merge the two separate Terraform configurations into a single project that:
+### 1. Generate Certificate
+```hcl
+resource "acme_certificate" "wildcard" {
+  # ... (Same as Ex 25)
+}
+```
 
-1. Generates the wildcard certificate using ACME provider
-2. Creates the server with cloud-init
-3. Creates DNS records for the server
-4. Deploys the certificate to the server (via cloud-init write_files or provisioner)
-5. Configures Nginx to use the certificate
+### 2. Pass to Cloud-Init
+```hcl
+user_data = templatefile("cloud-init.yaml", {
+  cert_pem = acme_certificate.wildcard.certificate_pem
+  key_pem  = acme_certificate.wildcard.private_key_pem
+})
+```
 
-### Key Considerations
-- Ensure proper dependency ordering (certificate must be generated before server can use it)
-- Use Terraform's `depends_on` where necessary
-- Consider using cloud-init `write_files` to deploy certificates
-- Ensure firewall allows both HTTP (80) and HTTPS (443)
+### 3. Cloud-Init Writes Files
+```yaml
+write_files:
+  - path: /etc/ssl/certs/fullchain.pem
+    content: ${cert_pem}
+  - path: /etc/ssl/private/privkey.pem
+    content: ${key_pem}
+  - path: /etc/nginx/sites-available/default
+    content: |
+      server {
+        listen 443 ssl;
+        ssl_certificate /etc/ssl/certs/fullchain.pem;
+        ssl_certificate_key /etc/ssl/private/privkey.pem;
+      }
 
-### Resource Dependencies
-The typical dependency chain:
-1. ACME certificate generation
-2. Server creation with cloud-init
-3. DNS record creation
-4. Certificate deployment to server
-5. Nginx configuration and restart
+runcmd:
+  - systemctl restart nginx
+```
 
 ## Verification
-1. Initialize: `terraform init`
-2. Plan to review resources: `terraform plan`
-3. Apply configuration: `terraform apply`
-4. Wait for cloud-init completion
-5. Verify DNS resolution works
-6. Test HTTP access: `curl http://g3.sdi.hdm-stuttgart.cloud`
-7. Test HTTPS access: `curl https://g3.sdi.hdm-stuttgart.cloud`
-8. Verify certificate in browser
-9. Test all configured domains (apex and subdomains)
+```bash
+terraform apply  # One-click deploy
+# Wait ~2 mins
+curl https://www.g3...  # Works immediately!
+```
 
 ## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
+**Race Condition:** Terraform must create the cert before the server reads it. Referencing `acme_certificate.wildcard.certificate_pem` ensures correct ordering.
 
 ## Related Exercises
-- [25 - Web Certificate](./25-web-certificate.md) - Certificate generation component
-- [26 - Testing Certificate](./26-testing-certificate.md) - Server configuration component
-- [15 - Cloud Init](./15-cloud-init.md) - Advanced cloud-init usage
+- [25 - Web Certificate](./25-web-certificate.md)
+- [26 - Testing Certificate](./26-testing-certificate.md)
