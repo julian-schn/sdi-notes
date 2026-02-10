@@ -2,18 +2,16 @@
 
 > **Working Code:** [`terraform/exercise-23-dns-host/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-23-dns-host/)
 
-**The Problem:** In Exercise 16, we fixed the "Unknown Host" warning by scanning the IP. But if you destroy and recreate the server, the IP might change, and you have to find the new one.
+**The Problem:** In Exercise 16, we fixed "Unknown Host" by scanning the IP. But if you recreate the server, the IP changes and you must find the new one.
 
-**The Solution:** Use a **DNS Name** (e.g., `workhorse.g2...`) for SSH. The name stays the same even if the underlying IP changes.
+**The Solution:** Use a DNS name (e.g., `workhorse.g2...`) for SSH. The name stays the same even if the IP changes.
 
 ## Objective
-Update the SSH wrapper and `known_hosts` logic to use the server's DNS name instead of its IP.
+Update SSH wrapper and `known_hosts` to use the server's DNS name instead of IP.
 
 ## How-to
 
-### 1. Terraform: Create the Record
-Link the server's IP to a domain name:
-
+### 1. Create DNS Record
 ```hcl
 resource "dns_a_record_set" "workhorse" {
   zone = "sdi.hdm-stuttgart.cloud."
@@ -22,31 +20,28 @@ resource "dns_a_record_set" "workhorse" {
 }
 ```
 
-### 2. Update `ssh-keyscan`
-Scan the **name**, not the IP. Note the `sleep 10` — DNS propagation takes a moment!
-
+### 2. Update ssh-keyscan
 ```hcl
 provisioner "local-exec" {
   command = <<EOT
-    sleep 10 # Wait for DNS
+    sleep 10  # DNS propagation
     ssh-keyscan workhorse.g2.sdi.hdm-stuttgart.cloud > gen/known_hosts
   EOT
 }
 ```
 
-### 3. Update the Wrapper Template
-Tell SSH to connect to the hostname:
-
+### 3. Update Wrapper Template
 ```bash
 #!/bin/bash
-# bin/ssh
 ssh -o UserKnownHostsFile=gen/known_hosts devops@workhorse.g2.sdi.hdm-stuttgart.cloud "$@"
 ```
 
 ## Verification
-1. `terraform apply`
-2. `./bin/ssh` -> Connects via hostname!
-3. If you destroy/recreate, the IP changes, but `./bin/ssh` still works.
+```bash
+terraform apply
+./bin/ssh  # Connects via hostname
+# Destroy/recreate → IP changes but ./bin/ssh still works
+```
 
 ## Related Exercises
-- [24 - Multiple Servers](./24-multiple-servers.md) - Doing this for many servers at once
+- [24 - Multiple Servers](./24-multiple-servers.md)

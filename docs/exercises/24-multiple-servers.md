@@ -1,77 +1,58 @@
-# 24 - Creating a Fixed Number of Servers
+# 24 - Multiple Servers
 
 > **Working Code:** [`terraform/exercise-24-multi-server/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-24-multi-server/)
 
-## Overview
-Write a Terraform configuration for deploying a configurable number of servers with unique DNS entries and SSH configurations for each.
+**The Problem:** Deploying 5 servers means copy-pasting the `hcloud_server` block 5 times. Tedious and hard to maintain.
 
-## Prerequisites
-- Completed [Exercise 23 - Host with DNS](./23-host-with-dns.md)
-- Understanding of Terraform count meta-argument
-- Familiarity with dynamic resource creation
+**The Solution:** Use `count` to tell Terraform "Make X copies of this".
 
 ## Objective
-Create multiple servers (defined by `serverCount`) with unique DNS entries and isolated SSH configurations per server.
+Deploy configurable number of servers (e.g., 2) with DNS records (`work-1`, `work-2`) and SSH wrappers.
 
-## Implementation
+## How-to
 
-### Configuration File
-Define the deployment parameters in `config.auto.tfvars`:
-
+### 1. Variables
 ```hcl
-dnsZone        = "gxy.sdi.hdm-stuttgart.cloud"
-serverBaseName = "work"
-serverCount    = 2
+variable "server_count" {
+  default = 2
+}
 ```
 
-### Expected Results
-`terraform apply` shall create:
+### 2. Servers with count
+```hcl
+resource "hcloud_server" "workers" {
+  count = var.server_count
+  name = "work-${count.index + 1}"  # work-1, work-2...
+  # ...
+}
+```
 
-1. **Two DNS entries:**
-   - `work-1.gxy.sdi.hdm-stuttgart.cloud`
-   - `work-2.gxy.sdi.hdm-stuttgart.cloud`
+### 3. DNS Records with count
+```hcl
+resource "dns_a_record_set" "workers" {
+  count = var.server_count
+  name = "work-${count.index + 1}"
+  addresses = [hcloud_server.workers[count.index].ipv4_address]
+}
+```
 
-2. **Two corresponding servers** each with its own unique SSH host key pair
+### 4. SSH Modules with count
+```hcl
+module "ssh_config" {
+  count = var.server_count
+  source = "./modules/ssh_utils"
 
-3. **Two subdirectories** `work-1` and `work-2` each containing:
-   - `bin/ssh` - SSH wrapper script for that specific server
-   - `gen/known_hosts` - Known hosts file for that specific server
-
-### Implementation Pattern
-Use Terraform's `count` or `for_each` to create multiple instances of:
-- Server resources
-- DNS records
-- SSH wrapper scripts
-- Known hosts files
+  name = hcloud_server.workers[count.index].name
+  ip   = hcloud_server.workers[count.index].ipv4_address
+}
+```
 
 ## Verification
-1. Apply configuration: `terraform apply`
-2. Verify DNS entries:
-   ```bash
-   dig +short work-1.gxy.sdi.hdm-stuttgart.cloud
-   dig +short work-2.gxy.sdi.hdm-stuttgart.cloud
-   ```
-3. Verify directory structure:
-   ```bash
-   ls -la work-1/bin/ssh work-1/gen/known_hosts
-   ls -la work-2/bin/ssh work-2/gen/known_hosts
-   ```
-4. Connect to each server:
-   ```bash
-   ./work-1/bin/ssh
-   ./work-2/bin/ssh
-   ```
-
-## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
+```bash
+terraform apply
+ls bin/  # See ssh-work-1, ssh-work-2
+# Change server_count to 3 and apply again → one new server
+```
 
 ## Related Exercises
-- [23 - Host with DNS](./23-host-with-dns.md) - Single host with DNS setup
-- [17 - Host Metadata](./17-host-metadata.md) - Module-based host creation
+- [28 - Subnet](./28-subnet.md)

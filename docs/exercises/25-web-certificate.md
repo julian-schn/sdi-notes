@@ -2,20 +2,19 @@
 
 > **Working Code:** [`terraform/exercise-25-web-certificate/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-25-web-certificate/)
 
-**The Problem:** Running Certbot on the server (Exercise 21) works, but the certificate lives *on the server*. If the server dies, the cert is gone. Also, automating the renewal logic inside the server is just another moving part to break.
+**The Problem:** Certbot on the server works, but if the server dies, the cert's gone. Renewal automation is another moving part to break.
 
-**The Solution:** Use the Terraform `acme` provider to request the certificate **locally** on your machine (or CI runner) and store it. Then, upload it to any server that needs it.
+**The Solution:** Use Terraform's `acme` provider to generate certificates locally, then upload to any server.
 
 ## Objective
-Generate a **wildcard certificate** (`*.g3.sdi.hdm-stuttgart.cloud`) using Terraform and the ACME (Let's Encrypt) provider.
+Generate a wildcard certificate (`*.g3.sdi.hdm-stuttgart.cloud`) using Terraform and ACME (Let's Encrypt).
 
 ## How-to
 
-### 1. The ACME Provider
-This provider talks to Let's Encrypt for you.
+### 1. Configure ACME Provider
 
-::: danger Use Staging!
-Always use the `acme-staging` URL while developing. Production Let's Encrypt has strict rate limits (5 per week!).
+::: danger Rate Limits!
+Use staging while developing. Production Let's Encrypt allows only 5 certs per week.
 :::
 
 ```hcl
@@ -25,61 +24,57 @@ provider "acme" {
 ```
 
 ### 2. Register Account
-You need an account key (just like when running certbot manually):
-
 ```hcl
-resource "tls_private_key" "reg_private_key" {
+resource "tls_private_key" "acme_registration" {
   algorithm = "RSA"
+  rsa_bits  = 4096
 }
 
-resource "acme_registration" "reg" {
-  account_key_pem = tls_private_key.reg_private_key.private_key_pem
-  email_address   = "devops@example.com"
+resource "acme_registration" "registration" {
+  account_key_pem = tls_private_key.acme_registration.private_key_pem
+  email_address   = var.email
 }
 ```
 
-### 3. Request Certificate (DNS Challenge)
-This is the magic part. Terraform will:
-1. Ask Let's Encrypt for a cert.
-2. LE will say "Prove you own this domain by setting a DNS TXT record".
-3. Terraform will **automatically create that DNS record** using your DNS provider config.
-4. LE creates the cert.
-5. Terraform cleans up the DNS record.
+### 3. Request Certificate (DNS-01 Challenge)
+Terraform requests cert from Let's Encrypt, LE responds with DNS TXT challenge, Terraform creates the record using your DNS provider, LE verifies and issues cert, then Terraform cleans up.
 
 ```hcl
-resource "acme_certificate" "cert" {
-  account_key_pem = acme_registration.reg.account_key_pem
-  common_name     = "*.g3.sdi.hdm-stuttgart.cloud"
-  
+resource "acme_certificate" "wildcard" {
+  account_key_pem          = acme_registration.registration.account_key_pem
+  common_name              = var.dns_zone
+  subject_alternative_names = ["*.${var.dns_zone}"]
+
   dns_challenge {
-    provider = "rfc2136" # Generic DNS update (TSIG)
+    provider = "rfc2136"
     config = {
       RFC2136_NAMESERVER = "ns1.sdi.hdm-stuttgart.cloud"
-      # ... keys ...
+      RFC2136_TSIG_KEY   = "${var.project}.key"
+      # ... TSIG config ...
     }
   }
 }
 ```
 
-### 4. Save to Disk
-Save the resulting files so you can inspect them:
-
+### 4. Save Certificates
 ```hcl
-resource "local_file" "cert" {
-  content  = "${acme_certificate.certificate.certificate_pem}${acme_certificate.certificate.issuer_pem}"
+resource "local_file" "fullchain" {
+  content  = "${acme_certificate.wildcard.certificate_pem}${acme_certificate.wildcard.issuer_pem}"
   filename = "gen/fullchain.pem"
 }
 
-resource "local_file" "key" {
-  content  = acme_certificate.certificate.private_key_pem
-  filename = "gen/privkey.pem"
+resource "local_file" "private_key" {
+  content  = acme_certificate.wildcard.private_key_pem
+  filename = "gen/private.pem"
 }
 ```
 
 ## Verification
-1. `terraform apply` -> Watch the "Challenges" log messages.
-2. `ls gen/` -> You should see your `.pem` files.
-3. `openssl x509 -in gen/fullchain.pem -text -noout` -> Check the details (Issuer should be "Fake LE").
+```bash
+terraform apply  # Watch "Challenges" log
+ls gen/          # See .pem files
+openssl x509 -in gen/fullchain.pem -text -noout  # Issuer: "Fake LE"
+```
 
 ## Related Exercises
-- [26 - Testing Certificate](./26-testing-certificate.md) - Actually using these files on a server
+- [26 - Testing Certificate](./26-testing-certificate.md)
