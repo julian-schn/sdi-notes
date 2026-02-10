@@ -118,6 +118,8 @@ yarn-error.log*
 *.temp
 .tmp/
 .temp/
+.agent/
+.claude/
 
 # OS generated files
 .DS_Store
