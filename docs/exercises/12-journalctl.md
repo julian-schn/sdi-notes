@@ -1,84 +1,40 @@
 # 12 - Journalctl
 
-> **Note:** This is a conceptual/command-line exercise. No terraform implementation required.
+> **Note:** Just a command-line exercise.
 
-## Overview
-`journalctl` displays system logs collected by systemd's journald service. Unlike `/var/log/*.log` files, these logs are stored in a binary journal that keeps logs from all services — including SSH, kernel, authentication, etc.
+**The Problem:** Modern Linux systems (systemd) store logs in a binary format, so you can't just `cat` text files in `/var/log` anymore for many services.
 
-## Prerequisites
-- Systemd-based Linux distribution
-- Basic understanding of system services
+**The Solution:** `journalctl` is the universal query tool for systemd logs.
 
 ## Objective
-Use `journalctl -f` to follow all systemd-managed logs live, or `journalctl -u service` for a specific unit.
+Query system logs effectively.
 
-## Implementation
+## How-to
 
-### Viewing All Logs
-Display all system logs:
-
+### 1. View Everything (Paged)
 ```bash
 journalctl
 ```
+Use regular `less` controls (arrows, `q` to quit).
 
-### Following Logs in Real Time
-Watch logs as they are generated (similar to `tail -f`):
-
+### 2. Follow Live Logs (Like tail -f)
 ```bash
 journalctl -f
 ```
 
-### Filtering by Service Unit
-View logs for a specific service:
-
+### 3. Filter by Service (The Most Useful Command)
+See only logs for a specific service (e.g., nginx or ssh):
 ```bash
 journalctl -u nginx
+journalctl -u ssh -f  # Follow live!
 ```
 
-Follow logs for a specific service:
-
+### 4. Filter by Time or Boot
 ```bash
-journalctl -u ssh -f
+journalctl -b          # Logs from current boot only
+journalctl --since "1 hour ago"
+journalctl -p err      # Errors only
 ```
-
-### Additional Useful Options
-Show logs since last boot:
-```bash
-journalctl -b
-```
-
-Show logs from a specific time range:
-```bash
-journalctl --since "2024-01-01" --until "2024-01-02"
-```
-
-Show kernel messages only:
-```bash
-journalctl -k
-```
-
-Show logs with high priority (errors and above):
-```bash
-journalctl -p err
-```
-
-## Verification
-1. View all system logs: `journalctl`
-2. Follow live logs: `journalctl -f`
-3. In another terminal, restart a service: `sudo systemctl restart nginx`
-4. Verify restart messages appear in journalctl output
-5. Filter for specific service: `journalctl -u nginx`
-
-## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
 
 ## Related Exercises
-- [11 - Tail](./11-tail.md) - File-based log monitoring
-- [14 - Nginx Automation](./14-nginx-automation.md) - Service that generates logs
+- [11 - Tail](./11-tail.md) - The old-school file way

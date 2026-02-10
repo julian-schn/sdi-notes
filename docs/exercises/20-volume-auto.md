@@ -1,4 +1,4 @@
-# 20 - Mount Point's Name Specification
+# 20 - Volume Auto-Mounting
 
 > **Working Code:** [`terraform/exercise-20-volume-auto/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-20-volume-auto/)
 

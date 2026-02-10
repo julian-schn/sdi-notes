@@ -1,133 +1,67 @@
-# 19 - Partitions and Mounting
+# 19 - Partitions and Mounting (Manual)
 
 > **Working Code:** [`terraform/exercise-19-volume-manual/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-19-volume-manual/)
 
-## Overview
-Attach a volume to a server and manually partition/mount it. This exercise demonstrates fundamental Linux disk management including partitioning, filesystem creation, and persistent mounting.
+**The Problem:** Servers are ephemeral. If you delete the server, the data on its local disk is gone.
 
-## Prerequisites
-- Completed [Exercise 15 - Cloud Init](./15-cloud-init.md) or similar
-- Understanding of Linux filesystem concepts
-- Familiarity with fdisk and mount commands
+**The Solution:** Use an external **Volume** (Block Storage). It survives server deletion and can be re-attached to a new server.
 
 ## Objective
-Attach a Hetzner Cloud volume, manually create partitions using fdisk, format them with different filesystems (ext4, xfs), mount them, and configure persistent mounting via /etc/fstab.
+Attach a 10GB volume to a server, then manually partition, format, and mount it.
 
-## Implementation
+## How-to
 
-### Step 1: Terraform Configuration
-Add volume and attachment resources:
+### 1. Terraform: Create & Attach
+Define the volume and attach it to your server:
 
 ```hcl
-resource "hcloud_volume" "data_volume" {
-  name      = "${var.project}-volume"
+resource "hcloud_volume" "web_data" {
+  name      = "web-data"
   size      = 10
-  location  = var.location
+  location  = "hel1"
 }
 
-resource "hcloud_volume_attachment" "main_attachment" {
-  volume_id = hcloud_volume.data_volume.id
-  server_id = hcloud_server.main_server.id
-  automount = true
+resource "hcloud_volume_attachment" "main" {
+  volume_id = hcloud_volume.web_data.id
+  server_id = hcloud_server.web.id
+  automount = false  # We want to do it manually!
 }
 ```
 
-### Step 2: Apply Terraform
-Create the infrastructure:
+### 2. Manual Setup (SSH)
+After `terraform apply`, SSH into the server to set up the disk.
 
+**Find the disk:**
 ```bash
-terraform apply
+lsblk
+# You'll likely see /dev/sdb of size 10G
 ```
 
-### Step 3: SSH into the Server
-Connect to the server:
-
+**Partition it (fdisk):**
 ```bash
-./bin/ssh
-```
-
-### Step 4: Identify the Volume
-Check the current mounts:
-
-```bash
-df -h
-# Look for /mnt/HC_Volume_...
-```
-
-### Step 5: Unmount and Partition
-Unmount the volume and create partitions:
-
-```bash
-# Unmount
-umount /mnt/HC_Volume_...
-
-# Partition (interactive)
 fdisk /dev/sdb
-# n (new), p (primary), 1, default, +5G
-# n (new), p (primary), 2, default, default
-# w (write)
+# Type 'n' (new), 'p' (primary), '1', enter, enter.
+# Type 'w' (write).
 ```
 
-### Step 6: Format Partitions
-Create filesystems on the partitions:
-
+**Format it (ext4):**
 ```bash
-mkfs -t ext4 /dev/sdb1
-mkfs -t xfs /dev/sdb2
+mkfs.ext4 /dev/sdb1
 ```
 
-### Step 7: Mount Partitions
-Create mount points and mount the partitions:
-
+**Mount it:**
 ```bash
-mkdir /disk1 /disk2
-mount /dev/sdb1 /disk1
-mount /dev/sdb2 /disk2
+mkdir /mnt/data
+mount /dev/sdb1 /mnt/data
 ```
 
-### Step 8: Make Persistent with fstab
-Configure automatic mounting on boot:
-
+### 3. Verification
+Write a file:
 ```bash
-# Get UUIDs
-blkid
-
-# Edit /etc/fstab
-echo "/dev/sdb1 /disk1 ext4 defaults 0 0" >> /etc/fstab
-echo "UUID=... /disk2 xfs defaults 0 0" >> /etc/fstab
-
-# Test
-mount -a
+echo "Important Data" > /mnt/data/file.txt
 ```
 
-### Step 9: Reboot and Verify
-Reboot to verify persistence:
-
-```bash
-reboot
-# Wait...
-ssh ...
-df -h
-```
-
-## Verification
-1. Apply Terraform: `terraform apply`
-2. SSH into server: `./bin/ssh`
-3. Verify volume attached: `lsblk`
-4. Complete partitioning and formatting steps
-5. Check mounts: `df -h | grep disk`
-6. Verify fstab: `cat /etc/fstab`
-7. Reboot and verify mounts persist: `sudo reboot` then check `df -h`
-
-## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
+Now, if you destroy the server but keep the volume, your "Important Data" is safe.
 
 ## Related Exercises
-- [20 - Volume Auto](./20-volume-auto.md) - Automating volume setup with cloud-init
+- [20 - Volume Auto](./20-volume-auto.md) - Automating this entire process with Cloud-Init

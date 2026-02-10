@@ -2,121 +2,58 @@
 
 > **Working Code:** [`terraform/exercise-16-known-hosts/`](https://github.com/julian-schn/sdi-notes/tree/main/terraform/exercise-16-known-hosts/)
 
-## Overview
-Generate per-deployment SSH known_hosts and wrapper scripts so `ssh`/`scp` work without global known_hosts prompts. This approach isolates server host keys per project, preventing conflicts when recreating servers.
+**The Problem:** Every time you destroy/recreate a server, it gets a new host key. If the IP stays the same, SSH freaks out: `WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED` and blocks you.
 
-## Prerequisites
-- Completed [Exercise 15 - Cloud Init](./15-cloud-init.md)
-- Understanding of SSH host key verification
-- Familiarity with Terraform templating
+**The Solution:** Use a project-specific `known_hosts` file and a wrapper script. Don't pollute your global `~/.ssh/known_hosts`.
 
 ## Objective
-Terraform fetches the server's SSH host key and writes it to `terraform/gen/known_hosts`. Terraform renders `terraform/bin/ssh` and `terraform/bin/scp` from templates, pointing them at that file. You run `./terraform/bin/ssh` or `./terraform/bin/scp` and never touch your global `~/.ssh/known_hosts`.
+Generate a script `./terraform/bin/ssh` that uses a local `known_hosts` file, so you can connect without warnings.
 
-## Implementation
+## How-to
 
-### Step 1: Add SSH and SCP Wrapper Templates
-Create template files (Terraform module-relative):
+### 1. The Wrapper Template (`tpl/ssh.sh`)
+This script tells SSH to use a local known_hosts file instead of your global one:
 
 ```bash
-# tpl/ssh.sh
 #!/usr/bin/env bash
 GEN_DIR=$(dirname "$0")/../gen
 ssh -o UserKnownHostsFile="$GEN_DIR/known_hosts" ${devopsUsername}@${ip} "$@"
-
-# tpl/scp.sh
-#!/usr/bin/env bash
-GEN_DIR=$(dirname "$0")/../gen
-if [ $# -lt 2 ]; then
-   echo "usage: .../bin/scp ... ${devopsUsername}@${ip} ..."
-else
-   scp -o UserKnownHostsFile="$GEN_DIR/known_hosts" "$@"
-fi
 ```
 
-### Step 2: Generate Wrappers with Terraform
-Add Terraform resources to generate the wrapper scripts:
+### 2. The Terraform Config
+We need Terraform to do three things:
+1. Create the server.
+2. Scan its key and save it to `gen/known_hosts`.
+3. Fill in the template and save it to `bin/ssh`.
 
 ```hcl
-resource "local_file" "ssh_wrapper" {
-  content = templatefile("${path.module}/tpl/ssh.sh", {
-    devopsUsername = var.devops_username
-    ip             = hcloud_server.main_server.ipv4_address
-  })
-  filename        = "${path.module}/bin/ssh"
-  file_permission = "0755"
-}
-
-resource "local_file" "scp_wrapper" {
-  content = templatefile("${path.module}/tpl/scp.sh", {
-    devopsUsername = var.devops_username
-    ip             = hcloud_server.main_server.ipv4_address
-  })
-  filename        = "${path.module}/bin/scp"
-  file_permission = "0755"
-}
-```
-
-### Step 3: Create Deployment-Scoped known_hosts
-Use ssh-keyscan to fetch and store the server's host key:
-
-```hcl
+# Scan the key (requires the server to be up!)
 resource "null_resource" "known_hosts" {
-  depends_on = [hcloud_server.main_server]
-  triggers = { server_ip = hcloud_server.main_server.ipv4_address }
+  triggers = { server_ip = hcloud_server.web.ipv4_address }
   provisioner "local-exec" {
-    command = <<EOT
-      set -euo pipefail
-      mkdir -p "${path.module}/gen"
-      ssh-keyscan -t ed25519 ${hcloud_server.main_server.ipv4_address} > "${path.module}/gen/known_hosts"
-    EOT
+    command = "ssh-keyscan ${hcloud_server.web.ipv4_address} > gen/known_hosts"
   }
 }
+
+# Create the wrapper script
+resource "local_file" "ssh_script" {
+  content = templatefile("tpl/ssh.sh", {
+    ip = hcloud_server.web.ipv4_address
+    devopsUsername = var.devops_user
+  })
+  filename = "bin/ssh"
+  file_permission = "0755"
+}
 ```
 
-### Step 4: Ignore Generated Artifacts in Git
-Add to `.gitignore`:
+### 3. Usage
+Apply, then connect using your new script:
 
-```
-terraform/bin/
-terraform/gen/
-```
-
-### Step 5: Apply and Use
-Apply the configuration:
-
-```bash
-terraform apply
-```
-
-Connect using the generated wrappers:
 ```bash
 ./terraform/bin/ssh
 ```
 
-Transfer files:
-```bash
-./terraform/bin/scp localfile.txt :~/
-```
-
-## Verification
-1. Apply Terraform: `terraform apply`
-2. Check generated files exist: `ls terraform/bin/ssh terraform/gen/known_hosts`
-3. Connect with wrapper: `./terraform/bin/ssh`
-4. Verify no global known_hosts prompt
-5. Test scp wrapper: `./terraform/bin/scp /etc/hosts :/tmp/`
-
-## Problems & Learnings
-
-::: warning Common Issues
-*This section will be filled in collaboratively. Common issues encountered during this exercise will be documented here.*
-:::
-
-::: tip Key Takeaways
-*Key learnings and best practices from this exercise will be documented here.*
-:::
+No more warnings, even if you destroy and recreate the server 100 times.
 
 ## Related Exercises
-- [15 - Cloud Init](./15-cloud-init.md) - Server bootstrapping
-- [18 - SSH Module](./18-ssh-module.md) - Refactoring SSH logic into reusable module
-- [23 - Host with DNS](./23-host-with-dns.md) - Using DNS names instead of IP addresses
+- [18 - SSH Module](./18-ssh-module.md) - Wrapping this logic into a module so you don't have to copy-paste it
