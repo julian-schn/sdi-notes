@@ -1,21 +1,16 @@
 # Exercise 28 - Creating a Subnet
 # Creates a private network with two hosts: gateway (dual interface) and intern (private only)
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
-# ============================================================================
-# LOCAL VALUES
-# ============================================================================
+# --- LOCAL VALUES ---
 
 locals {
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -37,11 +32,8 @@ locals {
   )
 }
 
-# ============================================================================
-# SSH KEYS
-# ============================================================================
+# --- SSH KEYS ---
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -76,9 +68,7 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# ============================================================================
-# PRIVATE NETWORK
-# ============================================================================
+# --- PRIVATE NETWORK ---
 
 resource "hcloud_network" "private_net" {
   name     = "${var.project}-${var.private_network.name}"
@@ -108,9 +98,7 @@ resource "hcloud_network_route" "gateway_route" {
   depends_on = [hcloud_network_subnet.private_subnet]
 }
 
-# ============================================================================
-# FIREWALLS
-# ============================================================================
+# --- FIREWALLS ---
 
 # Gateway Firewall - SSH from Internet
 resource "hcloud_firewall" "gateway_firewall" {
@@ -126,7 +114,6 @@ resource "hcloud_firewall" "gateway_firewall" {
     ]
   }
 
-  # Allow all outbound traffic
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -176,7 +163,6 @@ resource "hcloud_firewall" "intern_firewall" {
     ]
   }
 
-  # Allow all outbound (though no Internet route exists yet)
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -213,9 +199,7 @@ resource "hcloud_firewall" "intern_firewall" {
   }
 }
 
-# ============================================================================
-# SERVERS
-# ============================================================================
+# --- SERVERS ---
 
 # Gateway Server - Dual interface (public + private)
 resource "hcloud_server" "gateway" {

@@ -1,14 +1,12 @@
 # Exercise 21 - Enhancing Web Server
 # Sets up web server with Nginx and DNS records for TLS config
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
 # Create Firewall (HTTP/HTTPS/SSH)
 resource "hcloud_firewall" "server_firewall" {
   name  = "${var.project}-web-server-firewall"
 
-  # SSH
   rule {
     direction = "in"
     protocol  = "tcp"
@@ -16,7 +14,6 @@ resource "hcloud_firewall" "server_firewall" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTP
   rule {
     direction = "in"
     protocol  = "tcp"
@@ -24,7 +21,6 @@ resource "hcloud_firewall" "server_firewall" {
     source_ips = ["0.0.0.0/0", "::/0"]
   }
 
-  # HTTPS
   rule {
     direction = "in"
     protocol  = "tcp"
@@ -53,7 +49,6 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -92,13 +87,11 @@ locals {
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
 
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (

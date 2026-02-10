@@ -1,10 +1,8 @@
 # Exercise 27 - Combining Certificate Generation and Server Creation
 # Complete all-in-one solution: certificate + DNS + server with SSL
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -23,13 +21,11 @@ locals {
 
   dns_zone_with_dot = "${var.dns_zone}."
 
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -46,9 +42,7 @@ locals {
   ))
 }
 
-# ============================================================================
-# PART 1: CERTIFICATE GENERATION (from Exercise 25)
-# ============================================================================
+# --- PART 1: CERTIFICATE GENERATION (from Exercise 25) ---
 
 # Private key for ACME registration
 resource "tls_private_key" "acme_registration" {
@@ -93,11 +87,8 @@ resource "local_file" "certificate" {
   file_permission = "0644"
 }
 
-# ============================================================================
-# PART 2: SERVER CREATION (from Exercise 26)
-# ============================================================================
+# --- PART 2: SERVER CREATION (from Exercise 26) ---
 
-# SSH Key
 resource "hcloud_ssh_key" "primary" {
   count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-combined-ssh-key"
@@ -110,7 +101,6 @@ resource "hcloud_ssh_key" "primary" {
   }
 }
 
-# Secondary SSH Key Resource (optional)
 resource "hcloud_ssh_key" "secondary" {
   count      = var.ssh_public_key_secondary != "" && var.existing_ssh_key_secondary_name == "" ? 1 : 0
   name       = "${var.project}-combined-secondary-ssh-key"
@@ -208,9 +198,7 @@ resource "hcloud_server" "web_server" {
   }
 }
 
-# ============================================================================
-# PART 3: DNS RECORDS
-# ============================================================================
+# --- PART 3: DNS RECORDS ---
 
 # DNS A record for apex domain - using nsupdate workaround
 # The hashicorp/dns provider doesn't support apex/root records directly
@@ -254,9 +242,7 @@ resource "dns_a_record_set" "names" {
   depends_on = [hcloud_server.web_server]
 }
 
-# ============================================================================
-# PART 4: SSH HELPERS
-# ============================================================================
+# --- PART 4: SSH HELPERS ---
 
 resource "null_resource" "known_hosts" {
   depends_on = [hcloud_server.web_server, null_resource.apex_record]

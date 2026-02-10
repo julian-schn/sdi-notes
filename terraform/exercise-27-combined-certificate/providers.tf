@@ -31,15 +31,12 @@ terraform {
   }
 }
 
-# Hetzner Cloud Provider
 provider "hcloud" {}
 
-# ACME provider (Let's Encrypt)
 provider "acme" {
   server_url = var.use_production ? "https://acme-v02.api.letsencrypt.org/directory" : "https://acme-staging-v02.api.letsencrypt.org/directory"
 }
 
-# DNS provider for HDM Stuttgart
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"

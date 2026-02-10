@@ -5,7 +5,6 @@ hostname: ${hostname}
 fqdn: ${hostname}.${dns_domain_name}
 manage_etc_hosts: template
 
-# Disable password authentication and root login
 ssh_pwauth: false
 disable_root: true
 
@@ -21,7 +20,6 @@ packages:
   - netcat-openbsd
   - net-tools
 
-# User configuration
 users:
   - default
   - name: ${devops_username}
@@ -33,9 +31,7 @@ users:
       - ${key}
 %{~ endfor ~}
 
-# Write configuration files
 write_files:
-  # SSH hardening configuration
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     content: |
       PasswordAuthentication no
@@ -78,9 +74,7 @@ write_files:
       To add Internet access for package management, see Exercise 29.
       ================================================================================
 
-# Commands to run after boot
 runcmd:
-  # Restart SSH service with new configuration
   - [systemctl, restart, ssh]
 
   # Configure UFW firewall (allow from private network)
@@ -89,8 +83,6 @@ runcmd:
   - [bash, -lc, "ufw allow from 10.0.1.0/24"]
   - [bash, -lc, "ufw --force enable"]
 
-  # Enable plocate (won't update but will be ready)
   - [bash, -lc, "systemctl enable plocate-updatedb.timer"]
 
-# Final message
 final_message: "Internal server is ready after $UPTIME seconds (NO INTERNET ACCESS)"

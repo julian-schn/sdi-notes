@@ -1,8 +1,6 @@
 # Exercise 29 - Outputs
 
-# ============================================================================
-# NETWORK OUTPUTS
-# ============================================================================
+# --- NETWORK OUTPUTS ---
 
 output "network_id" {
   description = "Private network ID"
@@ -19,9 +17,7 @@ output "subnet_ip_range" {
   value       = hcloud_network_subnet.private_subnet.ip_range
 }
 
-# ============================================================================
-# PRIMARY IP OUTPUTS
-# ============================================================================
+# --- PRIMARY IP OUTPUTS ---
 
 output "gateway_primary_ip" {
   description = "Gateway primary IP address (stable)"
@@ -33,9 +29,7 @@ output "gateway_primary_ip_id" {
   value       = hcloud_primary_ip.gateway_ip.id
 }
 
-# ============================================================================
-# GATEWAY SERVER OUTPUTS
-# ============================================================================
+# --- GATEWAY SERVER OUTPUTS ---
 
 output "gateway_name" {
   description = "Gateway server name"
@@ -67,9 +61,7 @@ output "apt_cacher_ng_url" {
   value       = "http://${var.gateway_private_ip}:3142"
 }
 
-# ============================================================================
-# INTERNAL SERVER OUTPUTS
-# ============================================================================
+# --- INTERNAL SERVER OUTPUTS ---
 
 output "intern_name" {
   description = "Internal server name"
@@ -86,9 +78,7 @@ output "intern_status" {
   value       = hcloud_server.intern.status
 }
 
-# ============================================================================
-# CONNECTION INFORMATION
-# ============================================================================
+# --- CONNECTION INFORMATION ---
 
 output "ssh_gateway_command" {
   description = "Command to SSH into gateway server"
@@ -145,9 +135,7 @@ output "connection_info" {
   EOT
 }
 
-# ============================================================================
-# MAKEFILE COMPATIBILITY
-# ============================================================================
+# --- MAKEFILE COMPATIBILITY ---
 
 output "server_ip" {
   description = "Primary server IP (gateway) for Makefile compatibility"

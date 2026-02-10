@@ -6,25 +6,22 @@ locals {
   cert_common_name = var.common_name != "" ? var.common_name : var.dns_zone
 }
 
-# Generate a private key for the ACME registration
 resource "tls_private_key" "acme_registration" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-# Register with the ACME server
 resource "acme_registration" "registration" {
   account_key_pem = tls_private_key.acme_registration.private_key_pem
   email_address   = var.email
 }
 
-# Generate a private key for the certificate
 resource "tls_private_key" "certificate" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
 
-# Request the certificate using DNS-01 challenge
+# DNS-01 wildcard certificate
 resource "acme_certificate" "wildcard" {
   account_key_pem          = acme_registration.registration.account_key_pem
   common_name              = local.cert_common_name
@@ -43,21 +40,18 @@ resource "acme_certificate" "wildcard" {
   }
 }
 
-# Save the private key to a file
 resource "local_file" "private_key" {
   content         = acme_certificate.wildcard.private_key_pem
   filename        = "${path.module}/gen/private.pem"
   file_permission = "0600"
 }
 
-# Save the certificate to a file
 resource "local_file" "certificate" {
   content         = "${acme_certificate.wildcard.certificate_pem}${acme_certificate.wildcard.issuer_pem}"
   filename        = "${path.module}/gen/certificate.pem"
   file_permission = "0644"
 }
 
-# Save the full chain (certificate + issuer)
 resource "local_file" "fullchain" {
   content         = "${acme_certificate.wildcard.certificate_pem}${acme_certificate.wildcard.issuer_pem}"
   filename        = "${path.module}/gen/fullchain.pem"

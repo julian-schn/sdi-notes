@@ -1,8 +1,6 @@
 # Exercise 28 - Variables
 
-# ============================================================================
-# PROJECT CONFIGURATION
-# ============================================================================
+# --- PROJECT CONFIGURATION ---
 
 variable "project" {
   description = "Project name used for resource naming"
@@ -16,9 +14,7 @@ variable "environment" {
   default     = "dev"
 }
 
-# ============================================================================
-# HETZNER CLOUD CONFIGURATION
-# ============================================================================
+# --- HETZNER CLOUD CONFIGURATION ---
 
 variable "location" {
   description = "Hetzner Cloud location"
@@ -38,9 +34,7 @@ variable "os_type" {
   default     = "debian-13"
 }
 
-# ============================================================================
-# SSH CONFIGURATION
-# ============================================================================
+# --- SSH CONFIGURATION ---
 
 variable "ssh_public_key" {
   description = "Primary SSH public key for server access"
@@ -59,9 +53,7 @@ variable "devops_username" {
   default     = "devops"
 }
 
-# ============================================================================
-# NETWORK CONFIGURATION
-# ============================================================================
+# --- NETWORK CONFIGURATION ---
 
 variable "private_network" {
   description = "Private network configuration"
@@ -112,13 +104,13 @@ variable "intern_private_ip" {
 }
 
 variable "existing_ssh_key_name" {
-  description = "Name of existing primary SSH key in Hetzner Cloud to reuse (optional). If provided, no new primary SSH key will be created."
+  description = "Reuse existing primary SSH key by name (skips creation)"
   type        = string
   default     = ""
 }
 
 variable "existing_ssh_key_secondary_name" {
-  description = "Name of existing secondary SSH key in Hetzner Cloud to reuse (optional). If provided, no new secondary SSH key will be created."
+  description = "Reuse existing secondary SSH key by name (skips creation)"
   type        = string
   default     = ""
 }

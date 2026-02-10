@@ -6,7 +6,6 @@ package_reboot_if_required: true
 ssh_pwauth: false
 disable_root: true
 
-# Install Nginx and Certbot
 packages: 
   - nginx
   - certbot
@@ -44,13 +43,10 @@ write_files:
       enabled = true
 
 runcmd:
-  # Basic system update
   - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
   
-  # Restart SSH to apply config
   - [systemctl, restart, ssh]
 
-  # Firewall Setup (Allow SSH, HTTP, HTTPS)
   - [bash, -lc, "ufw default deny incoming; ufw default allow outgoing; ufw allow 22/tcp; ufw allow 80/tcp; ufw allow 443/tcp; ufw --force enable"]
   
   # Enable Services

@@ -5,7 +5,6 @@ hostname: ${hostname}
 fqdn: ${hostname}.${dns_domain_name}
 manage_etc_hosts: template
 
-# Disable password authentication and root login
 ssh_pwauth: false
 disable_root: true
 
@@ -23,7 +22,6 @@ packages:
   - wget
   - htop
 
-# User configuration
 users:
   - default
   - name: ${devops_username}
@@ -40,9 +38,7 @@ apt:
   conf: |
     Acquire::http::Proxy "http://${gateway_private_ip}:3142";
 
-# Write configuration files
 write_files:
-  # SSH hardening configuration
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     content: |
       PasswordAuthentication no
@@ -102,13 +98,11 @@ write_files:
         curl -x http://${gateway_private_ip}:3142 http://example.com
       ================================================================================
 
-# Commands to run after boot
 runcmd:
   # Wait for apt-cacher-ng proxy to be available (with timeout)
   - [bash, -lc, "echo 'Waiting for apt-cacher-ng proxy on ${gateway_private_ip}:3142...'"]
   - [bash, -lc, "timeout 300 bash -c 'until nc -z ${gateway_private_ip} 3142; do echo \"Proxy not ready, waiting...\"; sleep 5; done' && echo 'Proxy is available!' || echo 'WARNING: Proxy wait timed out after 5 minutes'"]
 
-  # Restart SSH service with new configuration
   - [systemctl, restart, ssh]
 
   # Configure UFW firewall (allow from private network)
@@ -146,5 +140,4 @@ runcmd:
       ping -c 1 ${gateway_private_ip}
     permissions: '0755'
 
-# Final message
 final_message: "Internal server with HTTP proxy access is ready after $UPTIME seconds"

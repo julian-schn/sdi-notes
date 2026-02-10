@@ -36,7 +36,7 @@ variable "ssh_public_key" {
 }
 
 variable "ssh_public_key_secondary" {
-  description = "Optional secondary SSH public key (leave empty to skip)"
+  description = "Secondary SSH public key"
   type        = string
   default     = ""
 }

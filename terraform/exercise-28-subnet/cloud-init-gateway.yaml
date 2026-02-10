@@ -5,11 +5,9 @@ hostname: ${hostname}
 fqdn: ${hostname}.${dns_domain_name}
 manage_etc_hosts: template
 
-# Disable password authentication and root login
 ssh_pwauth: false
 disable_root: true
 
-# Package management
 package_update: true
 package_upgrade: true
 package_reboot_if_required: true
@@ -21,7 +19,6 @@ packages:
   - netcat-openbsd
   - net-tools
 
-# User configuration
 users:
   - default
   - name: ${devops_username}
@@ -33,16 +30,13 @@ users:
       - ${key}
 %{~ endfor ~}
 
-# Write configuration files
 write_files:
-  # SSH hardening configuration
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     content: |
       PasswordAuthentication no
       PermitRootLogin no
       PubkeyAuthentication yes
 
-  # Fail2ban configuration
   - path: /etc/fail2ban/jail.local
     content: |
       [DEFAULT]
@@ -77,26 +71,19 @@ write_files:
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
 
-# Commands to run after boot
 runcmd:
-  # Update system packages
   - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
-  # Restart SSH service with new configuration
   - [systemctl, restart, ssh]
 
-  # Configure UFW firewall
   - [bash, -lc, "ufw default deny incoming"]
   - [bash, -lc, "ufw default allow outgoing"]
   - [bash, -lc, "ufw allow 22/tcp"]
   - [bash, -lc, "ufw --force enable"]
 
-  # Enable and start fail2ban
   - [systemctl, enable, --now, fail2ban]
 
-  # Enable and start plocate
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
   - [plocate-updatedb]
 
-# Final message
 final_message: "Gateway server is ready after $UPTIME seconds"

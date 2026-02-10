@@ -1,7 +1,6 @@
 # Exercise 16 - Solving the known_hosts Quirk
 # Builds on Exercise 15 by adding SSH wrapper scripts
 
-# Get all existing SSH keys to check if our public key already exists
 data "hcloud_ssh_keys" "all" {}
 
 terraform {
@@ -23,18 +22,12 @@ terraform {
   }
 }
 
-# Configure the Hetzner Cloud Provider
-provider "hcloud" {
-  # Token is automatically read from HCLOUD_TOKEN environment variable
-}
+provider "hcloud" {}
 
-# Local provider (used for generating helper scripts/files)
 provider "local" {}
 
-# Null provider (used for local-exec helpers)
 provider "null" {}
 
-# Data sources to lookup existing SSH keys (if reusing)
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
   name  = var.existing_ssh_key_name
@@ -45,7 +38,6 @@ data "hcloud_ssh_key" "existing_secondary" {
   name  = var.existing_ssh_key_secondary_name
 }
 
-# Primary SSH Key Resource (conditional - only creates if not reusing existing)
 resource "hcloud_ssh_key" "primary" {
   count      = local.should_create_primary_key ? 1 : 0
   name       = "${var.project}-primary-ssh-key"
@@ -71,15 +63,12 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# Local values for SSH keys
 locals {
-  # Find existing SSH key with matching public key
   existing_key_with_pubkey = try([
     for key in data.hcloud_ssh_keys.all.ssh_keys :
     key if key.public_key == var.ssh_public_key
   ][0], null)
 
-  # Determine if we should create a new SSH key or use existing
   should_create_primary_key = var.existing_ssh_key_name == "" && local.existing_key_with_pubkey == null
 
   primary_ssh_key_id = var.existing_ssh_key_name != "" ? data.hcloud_ssh_key.existing_primary[0].id : (
@@ -96,11 +85,9 @@ locals {
   ))
 }
 
-# Firewall for this exercise
 resource "hcloud_firewall" "server_firewall" {
   name = "${var.project}-known-hosts-firewall"
 
-  # SSH access
   rule {
     direction = "in"
     port      = "22"
@@ -111,7 +98,6 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
-  # HTTP access
   rule {
     direction = "in"
     port      = "80"
@@ -122,7 +108,6 @@ resource "hcloud_firewall" "server_firewall" {
     ]
   }
 
-  # Allow all outbound traffic
   rule {
     direction = "out"
     protocol  = "tcp"
@@ -150,7 +135,6 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Local values
 locals {
   ssh_authorized_keys = concat(
     [var.ssh_public_key],
@@ -158,46 +142,38 @@ locals {
   )
 }
 
-# Hetzner Cloud Server Resource
 resource "hcloud_server" "main_server" {
   name        = var.server_name
   image       = var.server_image
   server_type = var.server_type
   location    = var.location
 
-  # SSH Keys
   ssh_keys = local.ssh_key_ids
 
-  # Firewall
   firewall_ids = [hcloud_firewall.server_firewall.id]
 
-  # Network configuration
   public_net {
     ipv4_enabled = true
     ipv6_enabled = true
   }
 
-  # Labels
   labels = {
     environment = var.environment
     project     = var.project
     managed_by  = "terraform"
   }
 
-  # Cloud-init configuration
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     server_name     = var.server_name
     ssh_public_keys = local.ssh_authorized_keys
     devops_username = var.devops_username
   })
 
-  # Lifecycle management
   lifecycle {
     create_before_destroy = true
   }
 }
 
-# NEW: Generate deployment-scoped known_hosts file
 resource "null_resource" "known_hosts" {
   depends_on = [hcloud_server.main_server]
 
@@ -210,7 +186,6 @@ resource "null_resource" "known_hosts" {
       set -euo pipefail
       mkdir -p "${path.module}/gen"
       
-      # Wait for SSH to be ready and scan host keys
       echo "Waiting for SSH to be ready on ${hcloud_server.main_server.ipv4_address}..."
       for i in {1..30}; do
         if ssh-keyscan -t ed25519 -T 5 ${hcloud_server.main_server.ipv4_address} 2>/dev/null | grep -q "ssh-ed25519"; then
@@ -229,7 +204,6 @@ resource "null_resource" "known_hosts" {
   }
 }
 
-# NEW: SSH wrapper script
 resource "local_file" "ssh_wrapper" {
   depends_on = [hcloud_server.main_server]
 
@@ -243,7 +217,6 @@ resource "local_file" "ssh_wrapper" {
   directory_permission = "0755"
 }
 
-# NEW: SCP wrapper script
 resource "local_file" "scp_wrapper" {
   depends_on = [hcloud_server.main_server]
 

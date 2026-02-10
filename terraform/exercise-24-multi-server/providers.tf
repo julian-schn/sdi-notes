@@ -24,12 +24,9 @@ terraform {
   }
 }
 
-# Configure the Hetzner Cloud Provider
 provider "hcloud" {
-  # Token is automatically read from HCLOUD_TOKEN environment variable
 }
 
-# Configure the DNS provider for HDM Stuttgart DNS server
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"
@@ -39,8 +36,6 @@ provider "dns" {
   }
 }
 
-# Local provider (used for generating helper scripts/files)
 provider "local" {}
 
-# Null provider (used for local-exec helpers)
 provider "null" {}

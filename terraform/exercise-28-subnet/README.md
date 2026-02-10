@@ -1,6 +1,6 @@
 # Exercise 28 - Subnet
 
-> **Full Guide:** [docs/exercises/28-subnet.md](../../docs/exercises/28-subnet.md) *(if available)*
+> **Full Guide:** [docs/exercises/28-subnet.md](../../docs/exercises/28-subnet.md)
 
 ## Quick Start
 
