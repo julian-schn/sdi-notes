@@ -7,11 +7,11 @@ hero:
   tagline: Comprehensive notes on Terraform and modern infrastructure practices
   actions:
     - theme: brand
-      text: Infrastructure as Code
-      link: /iac/introduction
-    - theme: alt
       text: Exercises
       link: /exercises/
+    - theme: alt
+      text: Infrastructure as Code
+      link: /iac/introduction
 
 features:
   - icon: 🏗️
