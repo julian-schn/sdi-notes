@@ -1,13 +1,14 @@
 # Terraform Basics
-(AI Slop here)
 
-Terraform is an open-source infrastructure as code software tool that provides a consistent CLI workflow to manage hundreds of cloud services.
+Terraform is an open-source infrastructure as code software tool that provides a
+consistent CLI workflow to manage hundreds of cloud services.
 
 ## Core Concepts
 
 ### Providers
 
-Providers are plugins that Terraform uses to interact with cloud providers, SaaS providers, and other APIs.
+Providers are plugins that Terraform uses to interact with cloud providers,
+SaaS providers, and other APIs.
 
 ```hcl
 terraform {
@@ -26,7 +27,8 @@ provider "aws" {
 
 ### Resources
 
-Resources are the most important element in the Terraform language. Each resource block describes one or more infrastructure objects.
+Resources are the most important element in the Terraform language.
+Each resource block describes one or more infrastructure objects.
 
 ```hcl
 resource "aws_instance" "web" {
@@ -65,4 +67,5 @@ terraform apply
 
 ## State Management
 
-Terraform keeps track of your real world infrastructure in a state file. This state is used to create plans and make changes to your infrastructure.
+Terraform keeps track of your real world infrastructure in a state file.
+This state is used to create plans and make changes to your infrastructure.

@@ -9,7 +9,7 @@ This guide covers setting up infrastructure on Hetzner Cloud using Terraform.
 
 ## Project Structure
 
-```
+```text
 terraform/
 ├── main.tf           # Provider configuration
 ├── variables.tf      # Input variables
@@ -103,7 +103,7 @@ project          = "hello-world"
 
 ### Server Types
 
-Servers we should use:
+Recommended Server Types:
 
 - `cx33`: 2 vCPU, 4GB RAM (AMD/Intel, cost-effective)
 
@@ -204,7 +204,7 @@ This script:
 
 After successful deployment, Terraform provides:
 
-```
+```text
 server_id = "12345678"
 server_name = "server-1"  
 server_public_ipv4 = "1.2.3.4"
