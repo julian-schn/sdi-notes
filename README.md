@@ -4,27 +4,27 @@
 
 Comprehensive lecture notes, documentation, and hands-on resources for the **113475a Software Defined Infrastructure** course.
 
-## 🔗 Quick Links
+## Quick Links
 
-- **🌐 Live Documentation:** [sdi-notes.pages.dev](https://julian-schn.github.io/sdi-notes/)
-- **🛠 Infrastructure As Code:** [docs/iac/](docs/iac/index.md)
-- **📝 Exercises:** [docs/exercises/](docs/exercises/index.md)
-
----
-
-## 📖 About the Course
-
-This repository serves as a central hub for understanding the principles and technologies behind **Software Defined Infrastructure (SDI)**. It covers the transition from traditional hardware-centric management to software-driven automated environments.
-
-### Key Topics Covered
-- **Infrastructure as Code (IaC):** Mastering Terraform for declarative resource management.
-- **Automation & Orchestration:** Streamlining system administration and deployments.
-- **Cloud Infrastructure:** Hands-on experience with providers like Hetzner Cloud.
-- **System Administration:** SSH management, package automation, and volume handling.
+- **Live Documentation:** [julian-schn.github.io/sdi-notes](https://julian-schn.github.io/sdi-notes/)
+- **Infrastructure As Code:** [docs/iac/](docs/iac/index.md)
+- **Exercises:** [docs/exercises/](docs/exercises/index.md)
 
 ---
 
-## 🏗 Running the Terraform Exercises
+## About
+
+Notes and Terraform code for the **113475a Software Defined Infrastructure** course at HdM Stuttgart. Covers Terraform on Hetzner Cloud, cloud-init, DNS, certificates, private networking, and more.
+
+Topics include:
+- Infrastructure as Code with Terraform and the Hetzner Cloud provider
+- Server provisioning and automation via cloud-init
+- DNS management, TLS certificates with Let's Encrypt
+- Private subnets, jump hosts, and application-level proxies
+
+---
+
+## Running the Terraform Exercises
 
 ### Credentials
 
@@ -45,7 +45,7 @@ make help           # list all available targets
 
 ---
 
-## 💻 Local Development
+## Local Development
 
 This project is built using [VitePress](https://vitepress.dev/). 
 
@@ -81,18 +81,6 @@ This project is built using [VitePress](https://vitepress.dev/).
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
-We value your feedback! If you find errors, typos, or have suggestions for improvement:
-
-1. **Open an Issue** to discuss your ideas.
-2. **Submit a Pull Request** with your proposed changes.
-
----
-
-## 📄 License
-
-This project is currently for personal/educational use. Please contact the repository owner before redistribution.
-
----
-*Last updated: January 2026*
+Found a mistake or want to add something? Open an issue or submit a PR.

@@ -1,7 +1,5 @@
 # Exercise 28 - Outputs
 
-# --- NETWORK OUTPUTS ---
-
 output "network_id" {
   description = "Private network ID"
   value       = hcloud_network.private_net.id
@@ -16,8 +14,6 @@ output "subnet_ip_range" {
   description = "Private subnet IP range"
   value       = hcloud_network_subnet.private_subnet.ip_range
 }
-
-# --- GATEWAY SERVER OUTPUTS ---
 
 output "gateway_name" {
   description = "Gateway server name"
@@ -44,8 +40,6 @@ output "gateway_status" {
   value       = hcloud_server.gateway.status
 }
 
-# --- INTERNAL SERVER OUTPUTS ---
-
 output "intern_name" {
   description = "Internal server name"
   value       = hcloud_server.intern.name
@@ -60,8 +54,6 @@ output "intern_status" {
   description = "Internal server status"
   value       = hcloud_server.intern.status
 }
-
-# --- CONNECTION INFORMATION ---
 
 output "ssh_gateway_command" {
   description = "Command to SSH into gateway server"
@@ -99,8 +91,6 @@ output "connection_info" {
       DNS Domain:       ${var.private_subnet.dns_domain_name}
   EOT
 }
-
-# --- MAKEFILE COMPATIBILITY ---
 
 output "server_ip" {
   description = "Primary server IP (gateway) for Makefile compatibility"

@@ -42,21 +42,15 @@ locals {
   ))
 }
 
-# --- PART 1: CERTIFICATE GENERATION (from Exercise 25) ---
-
-# Private key for ACME registration
 resource "tls_private_key" "acme_registration" {
   algorithm = "RSA"
   rsa_bits  = 4096
 }
-
-# Register with ACME server
 resource "acme_registration" "registration" {
   account_key_pem = tls_private_key.acme_registration.private_key_pem
   email_address   = var.email
 }
 
-# Request wildcard certificate
 resource "acme_certificate" "wildcard" {
   account_key_pem           = acme_registration.registration.account_key_pem
   common_name               = var.dns_zone
@@ -74,7 +68,6 @@ resource "acme_certificate" "wildcard" {
   }
 }
 
-# Save certificate files locally
 resource "local_file" "private_key" {
   content         = acme_certificate.wildcard.private_key_pem
   filename        = "${path.module}/gen/private.pem"
@@ -86,8 +79,6 @@ resource "local_file" "certificate" {
   filename        = "${path.module}/gen/certificate.pem"
   file_permission = "0644"
 }
-
-# --- PART 2: SERVER CREATION (from Exercise 26) ---
 
 resource "hcloud_ssh_key" "primary" {
   count      = local.should_create_primary_key ? 1 : 0
@@ -113,7 +104,6 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# Firewall with SSH, HTTP, HTTPS
 resource "hcloud_firewall" "server_firewall" {
   name = "${var.project}-combined-firewall"
 
@@ -159,7 +149,6 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Server with certificate installed
 resource "hcloud_server" "web_server" {
   name        = "${var.project}-combined"
   image       = var.server_image
@@ -180,7 +169,6 @@ resource "hcloud_server" "web_server" {
     managed_by  = "terraform"
   }
 
-  # Cloud-init with certificate embedded
   user_data = templatefile("${path.module}/cloud-init.yaml", {
     server_name         = var.dns_zone
     ssh_public_keys     = local.ssh_authorized_keys
@@ -190,7 +178,6 @@ resource "hcloud_server" "web_server" {
     dns_zone            = var.dns_zone
   })
 
-  # Ensure certificate is generated first
   depends_on = [acme_certificate.wildcard]
 
   lifecycle {
@@ -198,10 +185,7 @@ resource "hcloud_server" "web_server" {
   }
 }
 
-# --- PART 3: DNS RECORDS ---
-
-# DNS A record for apex domain - using nsupdate workaround
-# The hashicorp/dns provider doesn't support apex/root records directly
+# AI-assisted: nsupdate with HMAC-SHA512 auth, includes destroy provisioner
 resource "null_resource" "apex_record" {
   depends_on = [hcloud_server.web_server]
   
@@ -231,7 +215,6 @@ resource "null_resource" "apex_record" {
   }
 }
 
-# DNS A records for each server name (www, mail, etc.)
 resource "dns_a_record_set" "names" {
   count     = length(var.server_names)
   zone      = local.dns_zone_with_dot
@@ -241,8 +224,6 @@ resource "dns_a_record_set" "names" {
   
   depends_on = [hcloud_server.web_server]
 }
-
-# --- PART 4: SSH HELPERS ---
 
 resource "null_resource" "known_hosts" {
   depends_on = [hcloud_server.web_server, null_resource.apex_record]

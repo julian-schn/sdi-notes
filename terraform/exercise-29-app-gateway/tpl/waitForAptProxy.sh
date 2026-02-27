@@ -1,10 +1,9 @@
 #!/bin/bash
 # Wait for apt-cacher-ng service to be ready
 # This script is executed on the gateway host by Terraform provisioner
+# AI-assisted: nc polling loop with attempt counter and diagnostics on failure
 
-echo "==============================================="
-echo "Waiting for apt-cacher-ng service on ${interface}:3142..."
-echo "==============================================="
+echo "Waiting for apt-cacher-ng on ${interface}:3142..."
 
 max_attempts=60
 attempt=0
@@ -24,16 +23,6 @@ while ! nc -z ${interface} 3142; do
   sleep $sleep_interval
 done
 
-echo "==============================================="
-echo "apt-cacher-ng service is ready and listening on ${interface}:3142!"
-echo "==============================================="
-
-# Additional verification
-if systemctl is-active --quiet apt-cacher-ng; then
-  echo "Service status: ACTIVE"
-else
-  echo "WARNING: Service may not be fully active"
-  systemctl status apt-cacher-ng --no-pager
-fi
+echo "apt-cacher-ng ready on ${interface}:3142"
 
 exit 0

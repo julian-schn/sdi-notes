@@ -3,7 +3,6 @@
 
 data "hcloud_ssh_keys" "all" {}
 
-# Create Firewall (HTTP/HTTPS/SSH)
 resource "hcloud_firewall" "server_firewall" {
   name  = "${var.project}-web-server-firewall"
 
@@ -139,7 +138,7 @@ resource "hcloud_server" "web_server" {
 
 # DNS Configuration (HDM Stuttgart DNS Server)
 # Record: g2.sdi.hdm-stuttgart.cloud -> server IP
-# Note: hashicorp/dns provider doesn't support apex records, using nsupdate
+# AI-assisted: nsupdate with HMAC-SHA512 auth, includes destroy provisioner
 resource "null_resource" "dns_root" {
   triggers = {
     server_ip  = hcloud_server.web_server.ipv4_address

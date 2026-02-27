@@ -50,7 +50,6 @@ write_files:
       [sshd]
       enabled = true
 
-  # Custom hosts template for DNS resolution
   - path: /etc/cloud/templates/hosts.debian.tmpl
     content: |
       ## template:jinja
@@ -66,7 +65,6 @@ write_files:
       ${gateway_private_ip} gateway.${dns_domain_name} gateway
       ${intern_private_ip} intern.${dns_domain_name} intern
 
-      # The following lines are desirable for IPv6 capable hosts
       ::1 localhost ip6-localhost ip6-loopback
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters

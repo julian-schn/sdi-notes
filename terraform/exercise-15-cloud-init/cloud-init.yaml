@@ -1,6 +1,5 @@
 #cloud-config
 # Exercise 15 - Cloud-init Configuration
-# This file is templated by Terraform and runs on first boot
 
 hostname: ${server_name}
 fqdn: ${server_name}

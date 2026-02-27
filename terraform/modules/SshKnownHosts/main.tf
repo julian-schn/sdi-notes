@@ -16,6 +16,7 @@ resource "null_resource" "known_hosts" {
     server_ip = var.server_ip
   }
 
+  # AI-assisted: retry loop with ssh-keyscan and timeout
   provisioner "local-exec" {
     command = <<-EOT
       set -euo pipefail

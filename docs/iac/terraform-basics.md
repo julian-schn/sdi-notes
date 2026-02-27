@@ -7,37 +7,32 @@ consistent CLI workflow to manage hundreds of cloud services.
 
 ### Providers
 
-Providers are plugins that Terraform uses to interact with cloud providers,
-SaaS providers, and other APIs.
+Providers are plugins for interacting with cloud APIs. For this course:
 
 ```hcl
 terraform {
   required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.0"
+    hcloud = {
+      source = "hetznercloud/hcloud"
     }
   }
 }
 
-provider "aws" {
-  region = "us-west-2"
+provider "hcloud" {
+  # reads HCLOUD_TOKEN from environment
 }
 ```
 
 ### Resources
 
-Resources are the most important element in the Terraform language.
-Each resource block describes one or more infrastructure objects.
+Each resource block maps to one infrastructure object.
 
 ```hcl
-resource "aws_instance" "web" {
-  ami           = "ami-0c02fb55956c7d316"
-  instance_type = "t3.micro"
-
-  tags = {
-    Name = "HelloWorld"
-  }
+resource "hcloud_server" "web" {
+  name        = "web-1"
+  server_type = "cx33"
+  image       = "debian-13"
+  location    = "nbg1"
 }
 ```
 

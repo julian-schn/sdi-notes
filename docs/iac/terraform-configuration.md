@@ -1,6 +1,6 @@
 # Terraform Configuration
 
-This guide covers the structure and components of the Hetzner Cloud Terraform configuration.
+Overview of how the Terraform configuration is structured across the exercises.
 
 ## File Organization
 
@@ -169,8 +169,6 @@ resource "hcloud_firewall" "server_firewall" {
 
 ### Server Resource
 
-The main server resource with comprehensive configuration:
-
 ```hcl
 resource "hcloud_server" "main_server" {
   name         = local.server_name
@@ -233,15 +231,7 @@ locals {
 }
 ```
 
-This logic:
-- Scans existing servers for naming pattern matches
-- Extracts numeric suffixes from server names
-- Calculates the next available number
-- Generates the new server name
-
 ## Output Values
-
-Outputs provide information about created resources:
 
 ```hcl
 output "server_public_ipv4" {

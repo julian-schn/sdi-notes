@@ -163,7 +163,7 @@ resource "hcloud_volume" "data_volume" {
   name      = "${var.project}-volume"
   size      = 10 # GB
   location  = var.location
-  format    = "ext4" # Format on creation (Hetzner feature)
+  format    = "ext4" 
   
   labels = {
     environment = var.environment
@@ -175,7 +175,7 @@ resource "hcloud_volume" "data_volume" {
 resource "hcloud_volume_attachment" "main_attachment" {
   volume_id = hcloud_volume.data_volume.id
   server_id = hcloud_server.main_server.id
-  automount = true # Automount on the server side
+  automount = true 
 }
 
 module "ssh_known_hosts" {

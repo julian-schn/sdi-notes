@@ -112,22 +112,17 @@ variable "ssh_public_key" {
 
 ### SOPS Encryption
 
-For teams requiring encrypted files in version control:
+For encrypted secrets in version control:
 
 ```bash
-# Install SOPS and age
 brew install sops age
-
-# Generate encryption key
 age-keygen -o ~/.config/sops/age/keys.txt
-
-# Encrypt terraform.tfvars
 sops -e -i terraform.tfvars
 ```
 
 ### HashiCorp Vault
 
-For enterprise secret management:
+For centralised secret management:
 
 ```hcl
 data "vault_generic_secret" "hcloud" {
@@ -138,46 +133,6 @@ provider "hcloud" {
   token = data.vault_generic_secret.hcloud.data["api_token"]
 }
 ```
-
-### Cloud Secret Stores
-
-Using managed secret services:
-
-```hcl
-# AWS Secrets Manager example
-data "aws_secretsmanager_secret_version" "hcloud" {
-  secret_id = "hetzner-cloud-token"
-}
-
-locals {
-  hcloud_token = jsondecode(
-    data.aws_secretsmanager_secret_version.hcloud.secret_string
-  )["token"]
-}
-```
-
-## Best Practices
-
-### Development Environment
-
-- Use `.env` files for local secrets
-- Commit non-sensitive `terraform.tfvars`
-- Never commit actual credentials
-- Use separate API tokens per environment
-
-### Team Environment
-
-- Share encrypted files with SOPS
-- Use centralized secret management systems
-- Implement secret rotation policies
-- Maintain audit logs of secret access
-
-### Production Environment
-
-- Use managed secret services
-- Implement least-privilege access controls
-- Enable comprehensive audit logging
-- Automate secret rotation processes
 
 ## Validation
 

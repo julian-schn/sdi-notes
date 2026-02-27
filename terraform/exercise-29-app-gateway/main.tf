@@ -3,7 +3,6 @@
 
 data "hcloud_ssh_keys" "all" {}
 
-# --- LOCAL VALUES ---
 
 locals {
   existing_key_with_pubkey = try([
@@ -31,8 +30,6 @@ locals {
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
 }
-
-# --- SSH KEYS ---
 
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
@@ -68,8 +65,6 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# --- PRIMARY IP FOR GATEWAY ---
-
 resource "hcloud_primary_ip" "gateway_ip" {
   name          = "${var.project}-gateway-ip"
   location      = var.location
@@ -83,8 +78,6 @@ resource "hcloud_primary_ip" "gateway_ip" {
     managed_by  = "terraform"
   }
 }
-
-# --- PRIVATE NETWORK ---
 
 resource "hcloud_network" "private_net" {
   name     = "${var.project}-${var.private_network.name}"
@@ -114,9 +107,6 @@ resource "hcloud_network_route" "gateway_route" {
   depends_on = [hcloud_network_subnet.private_subnet]
 }
 
-# --- FIREWALLS ---
-
-# Gateway Firewall - SSH from Internet + apt-cacher-ng from private network
 resource "hcloud_firewall" "gateway_firewall" {
   name = "${var.project}-gateway-firewall"
 
@@ -166,7 +156,6 @@ resource "hcloud_firewall" "gateway_firewall" {
   }
 }
 
-# Internal Firewall - SSH and apt-cacher-ng from private network
 resource "hcloud_firewall" "intern_firewall" {
   name = "${var.project}-intern-firewall"
 
@@ -215,9 +204,6 @@ resource "hcloud_firewall" "intern_firewall" {
   }
 }
 
-# --- SERVERS ---
-
-# Gateway Server - Dual interface with apt-cacher-ng
 resource "hcloud_server" "gateway" {
   name        = "${var.project}-gateway"
   server_type = var.server_type
@@ -228,14 +214,12 @@ resource "hcloud_server" "gateway" {
 
   firewall_ids = [hcloud_firewall.gateway_firewall.id]
 
-  # Public interface with primary IP
   public_net {
     ipv4_enabled = true
     ipv4         = hcloud_primary_ip.gateway_ip.id
     ipv6_enabled = true
   }
 
-  # Private interface
   network {
     network_id = hcloud_network.private_net.id
     ip         = var.gateway_private_ip
@@ -263,14 +247,6 @@ resource "hcloud_server" "gateway" {
   ]
 }
 
-# --- SERVICE READY WAIT ---
-# Note: Service readiness is now handled by cloud-init on the intern server.
-# The intern's cloud-init will wait for apt-cacher-ng to be available on the
-# gateway before attempting package operations.
-
-# --- INTERNAL SERVER ---
-
-# Internal Server - Private interface only with apt proxy configuration
 resource "hcloud_server" "intern" {
   name        = "${var.project}-intern"
   server_type = var.server_type
@@ -281,13 +257,10 @@ resource "hcloud_server" "intern" {
 
   firewall_ids = [hcloud_firewall.intern_firewall.id]
 
-  # Disable public interfaces
   public_net {
     ipv4_enabled = false
     ipv6_enabled = false
   }
-
-  # Private interface only
   network {
     network_id = hcloud_network.private_net.id
     ip         = var.intern_private_ip

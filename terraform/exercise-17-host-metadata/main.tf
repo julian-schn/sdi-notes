@@ -28,7 +28,6 @@ provider "local" {}
 
 provider "null" {}
 
-# Data source to query existing servers for auto-incrementing
 data "hcloud_servers" "existing" {}
 
 data "hcloud_ssh_key" "existing_primary" {
@@ -41,19 +40,15 @@ data "hcloud_ssh_key" "existing_secondary" {
   name  = var.existing_ssh_key_secondary_name
 }
 
-# Local to calculate next server number
 locals {
-  # Extract numbers from existing servers matching our naming pattern
   existing_server_numbers = [
     for server in data.hcloud_servers.existing.servers :
     tonumber(regex("^${var.server_base_name}-(\\d+)$", server.name)[0])
     if can(regex("^${var.server_base_name}-(\\d+)$", server.name))
   ]
 
-  # Calculate next number (max + 1, or 1 if none exist)
   next_server_number = length(local.existing_server_numbers) > 0 ? max(local.existing_server_numbers...) + 1 : 1
 
-  # Generate server name with auto-increment
   server_name = "${var.server_base_name}-${local.next_server_number}"
 
   existing_key_with_pubkey = try([
@@ -151,7 +146,6 @@ resource "hcloud_firewall" "server_firewall" {
   }
 }
 
-# Additional local values
 locals {
   ssh_authorized_keys = concat(
     [var.ssh_public_key],
@@ -199,6 +193,7 @@ resource "null_resource" "known_hosts" {
     server_ip = hcloud_server.main_server.ipv4_address
   }
 
+  // AI-assisted: ssh-keyscan with timeout and retry logic
   provisioner "local-exec" {
     command = <<-EOT
       set -euo pipefail

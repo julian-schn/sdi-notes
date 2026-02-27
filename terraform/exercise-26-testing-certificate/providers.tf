@@ -36,7 +36,6 @@ provider "hcloud" {
   token = var.hcloud_token
 }
 
-# DNS Provider (RFC2136 - Dynamic DNS)
 provider "dns" {
   update {
     server        = "ns1.sdi.hdm-stuttgart.cloud"
@@ -46,9 +45,6 @@ provider "dns" {
   }
 }
 
-# ACME provider for Let's Encrypt certificates
 provider "acme" {
-  # Start with staging to avoid rate limits
-  # Switch to production after successful testing
   server_url = var.use_production ? "https://acme-v02.api.letsencrypt.org/directory" : "https://acme-staging-v02.api.letsencrypt.org/directory"
 }

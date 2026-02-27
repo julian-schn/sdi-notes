@@ -19,7 +19,6 @@ locals {
     var.ssh_public_key_secondary != "" ? [var.ssh_public_key_secondary] : []
   )
 
-  # Full DNS hostname for the server
   server_fqdn = "${var.server_name}.${var.dns_zone}"
   dns_zone_with_dot = "${var.dns_zone}."
 
@@ -150,9 +149,7 @@ resource "hcloud_server" "main_server" {
   }
 }
 
-# --- DNS RECORDS - NEW in Exercise 23 ---
 
-# DNS A record for the server (workhorse.gxy.sdi.hdm-stuttgart.cloud)
 resource "dns_a_record_set" "workhorse" {
   zone      = local.dns_zone_with_dot
   name      = var.server_name
@@ -160,9 +157,6 @@ resource "dns_a_record_set" "workhorse" {
   ttl       = 10
 }
 
-# --- SSH KNOWN_HOSTS AND WRAPPER SCRIPTS - Using DNS hostname instead of IP ---
-
-# Generate deployment-scoped known_hosts file using DNS hostname
 resource "null_resource" "known_hosts" {
   depends_on = [
     hcloud_server.main_server,
@@ -179,7 +173,7 @@ resource "null_resource" "known_hosts" {
       set -euo pipefail
       mkdir -p "${path.module}/gen"
       
-      # Wait for DNS to propagate and SSH to be ready
+      # AI-assisted: ssh-keyscan with timeout and retry logic
       echo "Waiting for DNS and SSH to be ready on ${local.server_fqdn}..."
       for i in {1..30}; do
         if ssh-keyscan -t ed25519 -T 5 ${local.server_fqdn} 2>/dev/null | grep -q "ssh-ed25519"; then
@@ -198,7 +192,6 @@ resource "null_resource" "known_hosts" {
   }
 }
 
-# SSH wrapper script - uses DNS hostname
 resource "local_file" "ssh_wrapper" {
   depends_on = [
     hcloud_server.main_server,
@@ -215,7 +208,6 @@ resource "local_file" "ssh_wrapper" {
   directory_permission = "0755"
 }
 
-# SCP wrapper script - uses DNS hostname
 resource "local_file" "scp_wrapper" {
   depends_on = [
     hcloud_server.main_server,

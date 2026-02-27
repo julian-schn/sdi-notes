@@ -38,7 +38,6 @@ write_files:
       PermitRootLogin no
       PubkeyAuthentication yes
 
-  # Custom hosts template for DNS resolution
   - path: /etc/cloud/templates/hosts.debian.tmpl
     content: |
       ## template:jinja
@@ -54,25 +53,9 @@ write_files:
       ${gateway_private_ip} gateway.${dns_domain_name} gateway
       ${intern_private_ip} intern.${dns_domain_name} intern
 
-      # The following lines are desirable for IPv6 capable hosts
       ::1 localhost ip6-localhost ip6-loopback
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
-
-  # Informational file about Internet access
-  - path: /etc/motd
-    content: |
-      ================================================================================
-      This is an internal server with NO INTERNET ACCESS
-      ================================================================================
-
-      This server is connected to a private subnet only.
-      - Package updates/installs are NOT currently available
-      - Internet connectivity tests will fail
-      - Access is available via gateway host only
-
-      To add Internet access for package management, see Exercise 29.
-      ================================================================================
 
 runcmd:
   - [systemctl, restart, ssh]

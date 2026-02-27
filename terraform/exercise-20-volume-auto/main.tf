@@ -127,12 +127,11 @@ locals {
   )
 }
 
-# Create a Volume
 resource "hcloud_volume" "data_volume" {
   name      = "${var.project}-volume"
   size      = 10 # GB
   location  = var.location
-  # format    = "ext4" # We will format via cloud-init instead for practice
+  # format    = "ext4" # format via cloud-init instead for practice
   
   labels = {
     environment = var.environment
@@ -141,11 +140,10 @@ resource "hcloud_volume" "data_volume" {
   }
 }
 
-# Attach Volume to Server
 resource "hcloud_volume_attachment" "main_attachment" {
   volume_id = hcloud_volume.data_volume.id
   server_id = hcloud_server.main_server.id
-  automount = false # We will mount via cloud-init
+  automount = false 
 }
 
 resource "hcloud_server" "main_server" {

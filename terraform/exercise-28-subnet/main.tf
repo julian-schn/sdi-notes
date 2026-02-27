@@ -3,7 +3,6 @@
 
 data "hcloud_ssh_keys" "all" {}
 
-# --- LOCAL VALUES ---
 
 locals {
   existing_key_with_pubkey = try([
@@ -32,7 +31,6 @@ locals {
   )
 }
 
-# --- SSH KEYS ---
 
 data "hcloud_ssh_key" "existing_primary" {
   count = var.existing_ssh_key_name != "" ? 1 : 0
@@ -68,7 +66,6 @@ resource "hcloud_ssh_key" "secondary" {
   }
 }
 
-# --- PRIVATE NETWORK ---
 
 resource "hcloud_network" "private_net" {
   name     = "${var.project}-${var.private_network.name}"
@@ -98,9 +95,6 @@ resource "hcloud_network_route" "gateway_route" {
   depends_on = [hcloud_network_subnet.private_subnet]
 }
 
-# --- FIREWALLS ---
-
-# Gateway Firewall - SSH from Internet
 resource "hcloud_firewall" "gateway_firewall" {
   name = "${var.project}-gateway-firewall"
 
@@ -150,7 +144,6 @@ resource "hcloud_firewall" "gateway_firewall" {
   }
 }
 
-# Internal Firewall - SSH from private network only
 resource "hcloud_firewall" "intern_firewall" {
   name = "${var.project}-intern-firewall"
 
@@ -199,9 +192,6 @@ resource "hcloud_firewall" "intern_firewall" {
   }
 }
 
-# --- SERVERS ---
-
-# Gateway Server - Dual interface (public + private)
 resource "hcloud_server" "gateway" {
   name        = "${var.project}-gateway"
   server_type = var.server_type
@@ -212,13 +202,10 @@ resource "hcloud_server" "gateway" {
 
   firewall_ids = [hcloud_firewall.gateway_firewall.id]
 
-  # Public interface
   public_net {
     ipv4_enabled = true
     ipv6_enabled = true
   }
-
-  # Private interface
   network {
     network_id = hcloud_network.private_net.id
     ip         = var.gateway_private_ip
@@ -245,7 +232,6 @@ resource "hcloud_server" "gateway" {
   ]
 }
 
-# Internal Server - Private interface only
 resource "hcloud_server" "intern" {
   name        = "${var.project}-intern"
   server_type = var.server_type
@@ -256,13 +242,10 @@ resource "hcloud_server" "intern" {
 
   firewall_ids = [hcloud_firewall.intern_firewall.id]
 
-  # Disable public interfaces
   public_net {
     ipv4_enabled = false
     ipv6_enabled = false
   }
-
-  # Private interface only
   network {
     network_id = hcloud_network.private_net.id
     ip         = var.intern_private_ip

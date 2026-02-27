@@ -73,7 +73,6 @@ resource "hcloud_firewall" "web_server" {
     ]
   }
 
-  # HTTP access (NEW in Exercise 14)
   rule {
     direction = "in"
     port      = "80"

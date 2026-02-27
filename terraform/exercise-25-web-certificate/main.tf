@@ -2,7 +2,6 @@
 # Generates Let's Encrypt wildcard certificate using DNS-01 challenge
 
 locals {
-  # Use dns_zone as common_name if not specified
   cert_common_name = var.common_name != "" ? var.common_name : var.dns_zone
 }
 

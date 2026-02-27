@@ -1,6 +1,6 @@
 # Terraform Hetzner Cloud Setup
 
-This guide covers setting up infrastructure on Hetzner Cloud using Terraform.
+Quick reference for the Hetzner Cloud Terraform setup used across the exercises.
 
 ## Prerequisites
 
@@ -40,21 +40,21 @@ The setup creates a cost-optimized Hetzner Cloud server with the following compo
 cd terraform
 ```
 
-1. Create environment file from template:
+2. Create environment file from template:
 
 ```bash
 cp .env.example .env
 ```
 
-1. Edit `.env` with your credentials:
+3. Edit `.env` with your credentials:
 
 ```bash
 export HCLOUD_TOKEN="API_TOKEN"
-export TF_VAR_ssh_public_key="ssh-ed25519 ..." # required 
-export TF_VAR_ssh_public_key_secondary=""  # not required 
+export TF_VAR_ssh_public_key="ssh-ed25519 ..." # required
+export TF_VAR_ssh_public_key_secondary=""  # not required
 ```
 
-1. Source the environment variables:
+4. Source the environment variables:
 
 ```bash
 source .env
@@ -192,13 +192,6 @@ ufw default allow outgoing
 ufw allow ssh
 ufw --force enable
 ```
-
-This script:
-
-- Updates system packages
-- Installs essential tools
-- Configures UFW firewall
-- Enables SSH access
 
 ## Outputs
 

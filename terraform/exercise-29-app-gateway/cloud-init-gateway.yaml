@@ -51,35 +51,17 @@ write_files:
       [sshd]
       enabled = true
 
-  # apt-cacher-ng configuration - listen on internal interface only
   - path: /etc/apt-cacher-ng/zz_local.conf
     content: |
-      # Listen only on internal network interface for security
       BindAddress: ${gateway_private_ip}
       Port: 3142
-
-      # Cache directory
       CacheDir: /var/cache/apt-cacher-ng
-
-      # Log directory
       LogDir: /var/log/apt-cacher-ng
-
-      # Disable user ports for security
       AllowUserPorts: 0
-
-      # Disable report page for security
       ReportPage: acng-report.html
-
-      # Keep cached packages for 30 days
       ExThreshold: 30
-
-      # Verbose logging for troubleshooting
       VerboseLog: 1
 
-      # Allow connections from private subnet
-      # (no explicit ACL needed since we bind to private interface)
-
-  # Custom hosts template for DNS resolution
   - path: /etc/cloud/templates/hosts.debian.tmpl
     content: |
       ## template:jinja
@@ -95,31 +77,10 @@ write_files:
       ${gateway_private_ip} gateway.${dns_domain_name} gateway
       ${intern_private_ip} intern.${dns_domain_name} intern
 
-      # The following lines are desirable for IPv6 capable hosts
       ::1 localhost ip6-localhost ip6-loopback
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
 
-  # MOTD with proxy information
-  - path: /etc/motd
-    content: |
-      ================================================================================
-      Gateway Server with apt-cacher-ng HTTP Proxy
-      ================================================================================
-
-      This gateway provides:
-        - SSH access from Internet
-        - Private network connectivity (${gateway_private_ip})
-        - HTTP proxy for internal hosts (apt-cacher-ng on port 3142)
-
-      apt-cacher-ng proxy: http://${gateway_private_ip}:3142
-
-      Cache location: /var/cache/apt-cacher-ng
-      Logs: /var/log/apt-cacher-ng/
-
-      Check status: systemctl status apt-cacher-ng
-      View cache:   ls -lh /var/cache/apt-cacher-ng/
-      ================================================================================
 
 runcmd:
 
@@ -136,14 +97,11 @@ runcmd:
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
   - [updatedb]
 
-  # Restart apt-cacher-ng with new configuration
   - [systemctl, restart, apt-cacher-ng]
   - [systemctl, enable, apt-cacher-ng]
 
-  # Wait a moment for service to fully start
   - [sleep, "5"]
 
-  # Verify apt-cacher-ng is listening
   - [bash, -lc, "ss -tlnp | grep 3142 || echo 'WARNING: apt-cacher-ng not listening on port 3142'"]
 
 final_message: "Gateway server with apt-cacher-ng is ready after $UPTIME seconds"

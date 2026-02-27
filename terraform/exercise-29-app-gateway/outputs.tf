@@ -1,7 +1,5 @@
 # Exercise 29 - Outputs
 
-# --- NETWORK OUTPUTS ---
-
 output "network_id" {
   description = "Private network ID"
   value       = hcloud_network.private_net.id
@@ -17,8 +15,6 @@ output "subnet_ip_range" {
   value       = hcloud_network_subnet.private_subnet.ip_range
 }
 
-# --- PRIMARY IP OUTPUTS ---
-
 output "gateway_primary_ip" {
   description = "Gateway primary IP address (stable)"
   value       = hcloud_primary_ip.gateway_ip.ip_address
@@ -28,8 +24,6 @@ output "gateway_primary_ip_id" {
   description = "Gateway primary IP resource ID"
   value       = hcloud_primary_ip.gateway_ip.id
 }
-
-# --- GATEWAY SERVER OUTPUTS ---
 
 output "gateway_name" {
   description = "Gateway server name"
@@ -61,8 +55,6 @@ output "apt_cacher_ng_url" {
   value       = "http://${var.gateway_private_ip}:3142"
 }
 
-# --- INTERNAL SERVER OUTPUTS ---
-
 output "intern_name" {
   description = "Internal server name"
   value       = hcloud_server.intern.name
@@ -77,8 +69,6 @@ output "intern_status" {
   description = "Internal server status"
   value       = hcloud_server.intern.status
 }
-
-# --- CONNECTION INFORMATION ---
 
 output "ssh_gateway_command" {
   description = "Command to SSH into gateway server"
@@ -106,36 +96,27 @@ output "test_proxy_command" {
 }
 
 output "connection_info" {
-  description = "Complete connection and configuration information"
+  description = "Complete connection information"
   value = <<-EOT
     Gateway Server:
-      Name:        ${hcloud_server.gateway.name}
-      Public IP:   ${hcloud_server.gateway.ipv4_address}
-      Private IP:  ${var.gateway_private_ip}
-      SSH:         ssh ${var.devops_username}@${hcloud_server.gateway.ipv4_address}
-      Proxy URL:   http://${var.gateway_private_ip}:3142
+      Name:       ${hcloud_server.gateway.name}
+      Public IP:  ${hcloud_server.gateway.ipv4_address}
+      Private IP: ${var.gateway_private_ip}
+      SSH:        ssh ${var.devops_username}@${hcloud_server.gateway.ipv4_address}
 
     Internal Server:
-      Name:        ${hcloud_server.intern.name}
-      Private IP:  ${var.intern_private_ip}
+      Name:       ${hcloud_server.intern.name}
+      Private IP: ${var.intern_private_ip}
       SSH (from gateway): ssh ${var.devops_username}@intern
       SSH (ProxyJump):    ssh -J ${var.devops_username}@${hcloud_server.gateway.ipv4_address} ${var.devops_username}@${var.intern_private_ip}
-      Proxy Config:       Acquire::http::Proxy "http://${var.gateway_private_ip}:3142";
 
     Network:
       Network IP Range: ${hcloud_network.private_net.ip_range}
       Subnet IP Range:  ${hcloud_network_subnet.private_subnet.ip_range}
       DNS Domain:       ${var.private_subnet.dns_domain_name}
-
-    Verification:
-      1. Check apt-cacher-ng: ssh ${var.devops_username}@${hcloud_server.gateway.ipv4_address} "systemctl status apt-cacher-ng"
-      2. SSH to intern:       ssh -J ${var.devops_username}@${hcloud_server.gateway.ipv4_address} ${var.devops_username}@${var.intern_private_ip}
-      3. Test proxy:          nc -zv ${var.gateway_private_ip} 3142
-      4. Update packages:     sudo apt-get update
   EOT
 }
 
-# --- MAKEFILE COMPATIBILITY ---
 
 output "server_ip" {
   description = "Primary server IP (gateway) for Makefile compatibility"

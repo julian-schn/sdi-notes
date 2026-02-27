@@ -66,78 +66,25 @@ write_files:
       ${gateway_private_ip} gateway.${dns_domain_name} gateway
       ${intern_private_ip} intern.${dns_domain_name} intern
 
-      # The following lines are desirable for IPv6 capable hosts
       ::1 localhost ip6-localhost ip6-loopback
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
-
-  # Verification script
-  - path: /usr/local/bin/verify-proxy
-    permissions: '0755'
-    content: |
-      #!/bin/bash
-      echo "=== Proxy Configuration ==="
-      cat /etc/apt/apt.conf.d/02proxy
-      echo ""
-      echo "=== Proxy Connectivity ==="
-      nc -zv ${gateway_private_ip} 3142
-      echo ""
-      echo "=== Direct Internet (should fail) ==="
-      ping -c 1 -W 2 8.8.8.8 || echo "No direct Internet access (expected)"
-      echo ""
-      echo "=== Gateway Connectivity ==="
-      ping -c 1 ${gateway_private_ip}
-
-  # MOTD with proxy information
-  - path: /etc/motd
-    content: |
-      ================================================================================
-      Internal Server with HTTP Proxy Access
-      ================================================================================
-
-      This server is connected to a private subnet.
-        - Internet access via HTTP proxy on gateway (${gateway_private_ip}:3142)
-        - Package updates/installs are available through the proxy
-        - Direct Internet connectivity is blocked (network isolation maintained)
-
-      HTTP Proxy Configuration:
-        Proxy URL:     http://${gateway_private_ip}:3142
-        Config file:   /etc/apt/apt.conf.d/02proxy
-        apt uses proxy automatically
-
-      Test proxy connectivity:
-        nc -zv ${gateway_private_ip} 3142
-
-      Verify no direct Internet:
-        ping 8.8.8.8  (should fail)
-
-      Test HTTP access via proxy:
-        curl -x http://${gateway_private_ip}:3142 http://example.com
-      ================================================================================
-
+      
 runcmd:
-  # Wait for apt-cacher-ng proxy to be available (with timeout)
+  # AI-assisted: timeout + until loop to wait for proxy readiness
   - [bash, -lc, "echo 'Waiting for apt-cacher-ng proxy on ${gateway_private_ip}:3142...'"]
   - [bash, -lc, "timeout 300 bash -c 'until nc -z ${gateway_private_ip} 3142; do echo \"Proxy not ready, waiting...\"; sleep 5; done' && echo 'Proxy is available!' || echo 'WARNING: Proxy wait timed out after 5 minutes'"]
 
   - [systemctl, restart, ssh]
 
-  # Configure UFW firewall (allow from private network)
   - [bash, -lc, "ufw default deny incoming"]
   - [bash, -lc, "ufw default allow outgoing"]
   - [bash, -lc, "ufw allow from 10.0.1.0/24"]
   - [bash, -lc, "ufw --force enable"]
 
-  # Enable plocate
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
   - [updatedb]
 
-  # Verify apt proxy is configured
-  - [bash, -lc, "echo 'Verifying apt proxy configuration:'"]
-  - [bash, -lc, "cat /etc/apt/apt.conf.d/02proxy"]
-
-  # Test package update via proxy
-  - [bash, -lc, "echo 'Testing package update via proxy:'"]
   - [bash, -lc, "apt-get update"]
 
 final_message: "Internal server with HTTP proxy access is ready after $UPTIME seconds"

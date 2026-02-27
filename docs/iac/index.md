@@ -1,6 +1,6 @@
 # Infrastructure as Code (IaC)
 
-This section covers Infrastructure as Code concepts and practices, with a focus on Terraform.
+Reference docs for the IaC tooling used in the exercises.
 
 ## Contents
 

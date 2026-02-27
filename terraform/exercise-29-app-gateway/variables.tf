@@ -1,7 +1,5 @@
 # Exercise 29 - Variables
 
-# --- PROJECT CONFIGURATION ---
-
 variable "project" {
   description = "Project name used for resource naming"
   type        = string
@@ -14,18 +12,16 @@ variable "environment" {
   default     = "dev"
 }
 
-# --- HETZNER CLOUD CONFIGURATION ---
-
 variable "location" {
   description = "Hetzner Cloud location"
   type        = string
-  default     = "nbg1" # Nuremberg
+  default     = "nbg1" 
 }
 
 variable "server_type" {
   description = "Hetzner Cloud server type"
   type        = string
-  default     = "cx22" # 2 vCPU, 4 GB RAM
+  default     = "cx22" 
 }
 
 variable "os_type" {
@@ -33,8 +29,6 @@ variable "os_type" {
   type        = string
   default     = "debian-13"
 }
-
-# --- SSH CONFIGURATION ---
 
 variable "ssh_public_key" {
   description = "Primary SSH public key for server access"
@@ -52,8 +46,6 @@ variable "devops_username" {
   type        = string
   default     = "devops"
 }
-
-# --- NETWORK CONFIGURATION ---
 
 variable "private_network" {
   description = "Private network configuration"
