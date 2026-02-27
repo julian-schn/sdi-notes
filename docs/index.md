@@ -25,6 +25,10 @@ features:
     details: Work with Hetzner Cloud and other cloud providers to deploy real infrastructure
 ---
 
+::: info AI Usage
+AI was used for proofreading and correctness checking.
+:::
+
 ## Quick Links
 
 - [Hetzner Console](https://console.hetzner.com/projects/3660831/servers)

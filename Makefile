@@ -144,37 +144,11 @@ init: ## terraform init (E=14)
 
 plan: ## terraform plan (E=14)
 	@echo "$(BLUE)→ Planning $(E)$(NC)"
-	@if [ -f $(ENV_FILE) ]; then \
-		. $(ENV_FILE) && \
-		EXISTING_KEY=$$(./scripts/find_ssh_key.sh 2>/dev/null || echo "") && \
-		if [ -n "$$EXISTING_KEY" ]; then \
-			echo "$(GREEN)→ Found existing SSH key: $$EXISTING_KEY$(NC)"; \
-			cd $(EX_DIR) && terraform plan -var="existing_ssh_key_name=$$EXISTING_KEY"; \
-		else \
-			echo "$(YELLOW)→ No existing SSH key found, will create new$(NC)"; \
-			cd $(EX_DIR) && terraform plan; \
-		fi; \
-	else \
-		echo "$(YELLOW)Warning: $(ENV_FILE) not found. Run 'make setup' first.$(NC)"; \
-		cd $(EX_DIR) && terraform plan; \
-	fi
+	$(call source_env,terraform plan)
 
 apply: ## terraform apply (E=14)
 	@echo "$(BLUE)→ Applying $(E)$(NC)"
-	@if [ -f $(ENV_FILE) ]; then \
-		. $(ENV_FILE) && \
-		EXISTING_KEY=$$(./scripts/find_ssh_key.sh 2>/dev/null || echo "") && \
-		if [ -n "$$EXISTING_KEY" ]; then \
-			echo "$(GREEN)→ Found existing SSH key: $$EXISTING_KEY$(NC)"; \
-			cd $(EX_DIR) && terraform apply -var="existing_ssh_key_name=$$EXISTING_KEY"; \
-		else \
-			echo "$(YELLOW)→ No existing SSH key found, will create new$(NC)"; \
-			cd $(EX_DIR) && terraform apply; \
-		fi; \
-	else \
-		echo "$(YELLOW)Warning: $(ENV_FILE) not found. Run 'make setup' first.$(NC)"; \
-		cd $(EX_DIR) && terraform apply; \
-	fi
+	$(call source_env,terraform apply)
 
 destroy: ## terraform destroy (E=14)
 	@echo "$(YELLOW)→ Destroying $(E)$(NC)"
@@ -251,6 +225,7 @@ clean-all: ## Remove ALL generated files (requires confirmation)
 	@find $(TF_DIR) -type d -name "bin" -exec rm -rf {} + 2>/dev/null || true
 	@find $(TF_DIR) -type d -name "gen" -exec rm -rf {} + 2>/dev/null || true
 	@echo "$(GREEN)✓ All generated files removed$(NC)"
+
 
 destroy-all: ## Destroy ALL resources (requires confirmation)
 	@echo "$(YELLOW)⚠ This will destroy resources in ALL exercises!$(NC)"
