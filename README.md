@@ -4,6 +4,8 @@
 
 Comprehensive lecture notes, documentation, and hands-on resources for the **113475a Software Defined Infrastructure** course.
 
+> **AI Usage Notice:** AI was used for proofreading and correctness checking of these notes.
+
 ## Quick Links
 
 - **Live Documentation:** [julian-schn.github.io/sdi-notes](https://julian-schn.github.io/sdi-notes/)
