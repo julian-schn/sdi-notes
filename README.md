@@ -24,6 +24,27 @@ This repository serves as a central hub for understanding the principles and tec
 
 ---
 
+## 🏗 Running the Terraform Exercises
+
+### Credentials
+
+Run `./scripts/setup.sh` once — it creates `terraform/.env` (gitignored) with:
+
+- `HCLOUD_TOKEN` — Hetzner Cloud API token (from console.hetzner.cloud → API Tokens)
+- `TF_VAR_ssh_public_key` — your SSH public key (auto-detected from `~/.ssh/id_ed25519.pub`)
+- `TF_VAR_dns_secret` — TSIG secret from your `dnsupdate.sec` file (required for exercises 22–29)
+
+### Running an Exercise
+
+```bash
+source terraform/.env
+make E=14 apply     # deploy
+make E=14 destroy   # tear down
+make help           # list all available targets
+```
+
+---
+
 ## 💻 Local Development
 
 This project is built using [VitePress](https://vitepress.dev/). 
