@@ -87,8 +87,8 @@ write_files:
           </style>
       </head>
       <body>
-          <h1>🔒 Exercise 26 - SSL Certificate Test</h1>
-          <p class="success">✅ If you see this page over HTTPS, the certificate is working!</p>
+          <h1>Exercise 26 - SSL Certificate Test</h1>
+          <p class="success">If you see this page over HTTPS, the certificate is working!</p>
           <p>Domain: ${dns_zone}</p>
           <p>Server provisioned by Terraform</p>
       </body>

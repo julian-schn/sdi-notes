@@ -7,7 +7,7 @@
 **The Solution:** Use Terraform's `acme` provider to generate certificates locally, then upload to any server.
 
 ## Objective
-Generate a wildcard certificate (`*.g3.sdi.hdm-stuttgart.cloud`) using Terraform and ACME (Let's Encrypt).
+Generate a wildcard certificate (`*.g2.sdi.hdm-stuttgart.cloud`) using Terraform and ACME (Let's Encrypt).
 
 ## How-to
 
@@ -75,6 +75,18 @@ terraform apply  # Watch "Challenges" log
 ls gen/          # See .pem files
 openssl x509 -in gen/fullchain.pem -text -noout  # Issuer: "Fake LE"
 ```
+
+## Problems & Learnings
+
+::: warning Common Issues
+- Always use the staging URL during development — production has strict rate limits that can lock you out for days.
+- The wildcard (`*.g2.sdi.hdm-stuttgart.cloud`) and apex (`g2.sdi.hdm-stuttgart.cloud`) are separate SANs and must both be listed explicitly.
+:::
+
+::: tip Key Takeaways
+- Only switch to the production ACME URL once staging succeeds, and revert immediately after.
+- Verify the certificate with `openssl x509 -in gen/certificate.pem -text -noout | grep -A2 "Subject Alternative"` to confirm both SANs are present.
+:::
 
 ## Related Exercises
 - [26 - Testing Certificate](./26-testing-certificate.md)

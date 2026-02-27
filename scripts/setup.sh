@@ -5,8 +5,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env"
-ENV_EXAMPLE="$SCRIPT_DIR/.env.example"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+TF_DIR="$PROJECT_ROOT/terraform"
+ENV_FILE="$TF_DIR/.env"
+ENV_EXAMPLE="$TF_DIR/.env.example"
 
 # Colors
 RED='\033[0;31m'
@@ -117,14 +119,14 @@ EOF
 
 setup_exercise() {
     local exercise="$1"
-    local exercise_dir="$SCRIPT_DIR/$exercise"
+    local exercise_dir="$TF_DIR/$exercise"
     local tfvars_example="$exercise_dir/config.auto.tfvars.example"
     local tfvars_file="$exercise_dir/config.auto.tfvars"
-    
+
     if [[ ! -d "$exercise_dir" ]]; then
         echo -e "${RED}Error: Exercise directory not found: $exercise_dir${NC}"
         echo "Available exercises:"
-        ls -d "$SCRIPT_DIR"/exercise-* "$SCRIPT_DIR"/base 2>/dev/null | xargs -n1 basename
+        ls -d "$TF_DIR"/exercise-* "$TF_DIR"/base 2>/dev/null | xargs -n1 basename
         exit 1
     fi
     

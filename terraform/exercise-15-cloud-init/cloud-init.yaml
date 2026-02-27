@@ -7,7 +7,7 @@ fqdn: ${server_name}
 
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 
 packages:
   - nginx
@@ -33,9 +33,9 @@ users:
     shell: /bin/bash
     lock_passwd: true
     ssh_authorized_keys:
-%{~ for key in ssh_public_keys ~}
+%{ for key in ssh_public_keys ~}
       - ${key}
-%{~ endfor ~}
+%{ endfor ~}
 
 write_files:
 
@@ -78,7 +78,6 @@ write_files:
 
 runcmd:
 
-  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
   - [systemctl, daemon-reload]
   - [systemctl, restart, ssh]
@@ -98,4 +97,4 @@ runcmd:
   - [systemctl, restart, fail2ban]
 
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
-  - [bash, -lc, "plocate-updatedb"]
+  - [updatedb]

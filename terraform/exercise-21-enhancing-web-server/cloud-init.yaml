@@ -2,7 +2,7 @@
 hostname: ${server_name}
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 ssh_pwauth: false
 disable_root: true
 
@@ -43,7 +43,6 @@ write_files:
       enabled = true
 
 runcmd:
-  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
   
   - [systemctl, restart, ssh]
 
@@ -52,7 +51,7 @@ runcmd:
   # Enable Services
   - [systemctl, enable, --now, nginx]
   - [systemctl, enable, --now, fail2ban]
-  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; plocate-updatedb"]
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; updatedb"]
 
   # Echo instructions to the log
   - echo "System ready. Run certbot interactively or via script to configure TLS."

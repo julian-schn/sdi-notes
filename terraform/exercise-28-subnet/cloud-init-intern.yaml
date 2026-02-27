@@ -29,7 +29,7 @@ users:
     ssh_authorized_keys:
 %{ for key in ssh_authorized_keys ~}
       - ${key}
-%{~ endfor ~}
+%{ endfor ~}
 
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf

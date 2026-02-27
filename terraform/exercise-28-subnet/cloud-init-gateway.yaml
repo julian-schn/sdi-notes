@@ -10,7 +10,7 @@ disable_root: true
 
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 
 packages:
   - ufw
@@ -72,7 +72,6 @@ write_files:
       ff02::2 ip6-allrouters
 
 runcmd:
-  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
   - [systemctl, restart, ssh]
 
@@ -84,6 +83,6 @@ runcmd:
   - [systemctl, enable, --now, fail2ban]
 
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
-  - [plocate-updatedb]
+  - [updatedb]
 
 final_message: "Gateway server is ready after $UPTIME seconds"

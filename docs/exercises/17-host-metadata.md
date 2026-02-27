@@ -38,5 +38,17 @@ module "web_metadata" {
 ### 3. Result
 After `terraform apply`, `Gen/` folder contains JSON files for other tools to parse.
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **Terraform server creation takes 5+ minutes** — caused by `package_reboot_if_required: true` triggering a server reboot mid-provisioning. The Hetzner provider polls through the reboot. Set to `false`.
+- **`Gen/web-server-01.json` not found** — the metadata file is named after the actual server (e.g. `Gen/metadata-server-1.json`). Use `terraform output -raw server_name` to get the correct name.
+:::
+
+::: tip Key Takeaways
+- The metadata filename is dynamic — always use `terraform output -raw server_name` to reference it
+- Auto-incrementing server names query existing Hetzner servers at plan time, so the name is only known after apply
+:::
+
 ## Related Exercises
 - [18 - SSH Module](./18-ssh-module.md)

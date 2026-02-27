@@ -44,5 +44,17 @@ resource "local_file" "ssh_script" {
 ./bin/ssh  # No warnings, even after 100 recreates
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **`./bin/scp /etc/hosts :/tmp/` fails** — the `:path` shorthand is not supported by the wrapper. Always specify the full destination: `./bin/scp /etc/hosts devops@<server-ip>:/tmp/`
+- **`gen/known_hosts` not found on the server** — this file is generated locally by Terraform's `ssh-keyscan`. Check it on your local machine, not inside the SSH session.
+:::
+
+::: tip Key Takeaways
+- The generated `bin/ssh` and `bin/scp` wrappers use a deployment-scoped `gen/known_hosts`, so you never get global `~/.ssh/known_hosts` conflicts when recreating servers
+- All generated files (`bin/`, `gen/`) are local to the exercise directory on your machine
+:::
+
 ## Related Exercises
 - [18 - SSH Module](./18-ssh-module.md)

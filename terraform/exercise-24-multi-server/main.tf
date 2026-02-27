@@ -199,21 +199,25 @@ resource "null_resource" "known_hosts" {
     command = <<-EOT
       set -euo pipefail
       SERVER_NAME="${local.server_names[count.index]}"
+      SERVER_IP="${hcloud_server.servers[count.index].ipv4_address}"
       SERVER_FQDN="${local.server_names[count.index]}.${var.dns_zone}"
-      
-      # Wait for DNS to propagate and SSH to be ready
-      echo "Waiting for DNS and SSH to be ready on $SERVER_FQDN..."
+
+      # Scan by IP (always available, no DNS propagation needed)
+      # then rewrite the known_hosts entry to use the FQDN
+      echo "Waiting for SSH to be ready on $SERVER_IP..."
       for i in {1..30}; do
-        if ssh-keyscan -t ed25519 -T 5 $SERVER_FQDN 2>/dev/null | grep -q "ssh-ed25519"; then
-          echo "SSH is ready, capturing host keys for $SERVER_FQDN..."
-          ssh-keyscan -t ed25519 $SERVER_FQDN > "${path.module}/$SERVER_NAME/gen/known_hosts" 2>/dev/null
+        if ssh-keyscan -t ed25519 -T 5 "$SERVER_IP" 2>/dev/null | grep -q "ssh-ed25519"; then
+          echo "SSH is ready, capturing host key and writing as $SERVER_FQDN..."
+          ssh-keyscan -t ed25519 "$SERVER_IP" 2>/dev/null \
+            | sed "s/^$SERVER_IP/$SERVER_FQDN/" \
+            > "${path.module}/$SERVER_NAME/gen/known_hosts"
           echo "Host keys saved to $SERVER_NAME/gen/known_hosts"
           exit 0
         fi
-        echo "Attempt $i/30: SSH/DNS not ready yet, waiting 5 seconds..."
+        echo "Attempt $i/30: SSH not ready yet, waiting 5 seconds..."
         sleep 5
       done
-      
+
       echo "ERROR: SSH did not become available after 150 seconds"
       exit 1
     EOT
@@ -229,6 +233,7 @@ resource "local_file" "ssh_wrapper" {
   content = templatefile("${path.module}/tpl/ssh.sh", {
     devopsUsername = var.devops_username
     hostname       = "${local.server_names[count.index]}.${var.dns_zone}"
+    ip             = hcloud_server.servers[count.index].ipv4_address
   })
 
   filename             = "${path.module}/${local.server_names[count.index]}/bin/ssh"

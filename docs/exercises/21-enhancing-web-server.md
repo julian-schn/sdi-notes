@@ -41,5 +41,18 @@ host www.g2.sdi.hdm-stuttgart.cloud  # Returns your IP
 curl https://www.g2...  # Lock icon!
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **`certbot: command not found`** — certbot is not included in the cloud-init package list. Install it manually: `sudo apt-get install -y certbot python3-certbot-nginx`
+- **`curl -I https://...` fails with SSL error** — expected with a staging certificate. The staging CA is not trusted by default. Use `curl -Ik` to skip verification, or open in a browser and bypass the warning.
+:::
+
+::: tip Key Takeaways
+- Always use `--staging` first — Let's Encrypt production has strict rate limits; hitting them will lock you out for hours
+- The staging certificate is functionally identical to production for testing nginx config — the only difference is the untrusted CA
+- `python3-certbot-nginx` is required alongside `certbot` for the `--nginx` plugin to work
+:::
+
 ## Related Exercises
 - [25 - Web Certificate](./25-web-certificate.md)

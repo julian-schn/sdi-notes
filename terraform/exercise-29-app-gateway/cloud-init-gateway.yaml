@@ -10,7 +10,7 @@ disable_root: true
 
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 
 packages:
   - ufw
@@ -29,7 +29,7 @@ users:
     ssh_authorized_keys:
 %{ for key in ssh_authorized_keys ~}
       - ${key}
-%{~ endfor ~}
+%{ endfor ~}
 
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
@@ -122,7 +122,6 @@ write_files:
       ================================================================================
 
 runcmd:
-  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
 
   - [systemctl, restart, ssh]
 
@@ -135,7 +134,7 @@ runcmd:
   - [systemctl, enable, --now, fail2ban]
 
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
-  - [plocate-updatedb]
+  - [updatedb]
 
   # Restart apt-cacher-ng with new configuration
   - [systemctl, restart, apt-cacher-ng]

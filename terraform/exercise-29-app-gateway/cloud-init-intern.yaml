@@ -11,7 +11,7 @@ disable_root: true
 # Package management - NOW ENABLED with apt proxy!
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 
 packages:
   - ufw
@@ -31,7 +31,7 @@ users:
     ssh_authorized_keys:
 %{ for key in ssh_authorized_keys ~}
       - ${key}
-%{~ endfor ~}
+%{ endfor ~}
 
 # Configure apt to use proxy BEFORE any package operations
 apt:
@@ -70,6 +70,23 @@ write_files:
       ::1 localhost ip6-localhost ip6-loopback
       ff02::1 ip6-allnodes
       ff02::2 ip6-allrouters
+
+  # Verification script
+  - path: /usr/local/bin/verify-proxy
+    permissions: '0755'
+    content: |
+      #!/bin/bash
+      echo "=== Proxy Configuration ==="
+      cat /etc/apt/apt.conf.d/02proxy
+      echo ""
+      echo "=== Proxy Connectivity ==="
+      nc -zv ${gateway_private_ip} 3142
+      echo ""
+      echo "=== Direct Internet (should fail) ==="
+      ping -c 1 -W 2 8.8.8.8 || echo "No direct Internet access (expected)"
+      echo ""
+      echo "=== Gateway Connectivity ==="
+      ping -c 1 ${gateway_private_ip}
 
   # MOTD with proxy information
   - path: /etc/motd
@@ -113,7 +130,7 @@ runcmd:
 
   # Enable plocate
   - [bash, -lc, "systemctl enable --now plocate-updatedb.timer"]
-  - [plocate-updatedb]
+  - [updatedb]
 
   # Verify apt proxy is configured
   - [bash, -lc, "echo 'Verifying apt proxy configuration:'"]
@@ -122,22 +139,5 @@ runcmd:
   # Test package update via proxy
   - [bash, -lc, "echo 'Testing package update via proxy:'"]
   - [bash, -lc, "apt-get update"]
-
-  # Create verification script
-  - path: /usr/local/bin/verify-proxy
-    content: |
-      #!/bin/bash
-      echo "=== Proxy Configuration ==="
-      cat /etc/apt/apt.conf.d/02proxy
-      echo ""
-      echo "=== Proxy Connectivity ==="
-      nc -zv ${gateway_private_ip} 3142
-      echo ""
-      echo "=== Direct Internet (should fail) ==="
-      ping -c 1 -W 2 8.8.8.8 || echo "No direct Internet access (expected)"
-      echo ""
-      echo "=== Gateway Connectivity ==="
-      ping -c 1 ${gateway_private_ip}
-    permissions: '0755'
 
 final_message: "Internal server with HTTP proxy access is ready after $UPTIME seconds"

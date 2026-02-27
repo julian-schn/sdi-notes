@@ -54,5 +54,17 @@ ls bin/  # See ssh-work-1, ssh-work-2
 # Change server_count to 3 and apply again → one new server
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **DNS propagation delay**: `ssh-keyscan` on the FQDN (`work-1.g2.sdi.hdm-stuttgart.cloud`) times out because DNS hasn't propagated yet when Terraform runs `null_resource.known_hosts`. Fix: scan by IP, then rewrite the entry with `sed` to use the FQDN.
+- **macOS DNS resolution**: Even after propagation, macOS's system resolver (`getaddrinfo`) may not resolve the Hetzner DNS entries that `dig` can resolve. The SSH wrapper connects by IP with `-o HostKeyAlias=<fqdn>` so the correct known_hosts entry is matched.
+:::
+
+::: tip Key Takeaways
+- Always scan SSH host keys by IP during provisioning — DNS is not yet reliable at that stage.
+- Use `HostKeyAlias` to verify against a FQDN known_hosts entry while connecting by IP.
+:::
+
 ## Related Exercises
 - [28 - Subnet](./28-subnet.md)

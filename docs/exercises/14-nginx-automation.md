@@ -31,5 +31,16 @@ terraform apply
 curl http://<server_ip>  # Welcome to Nginx!
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **nginx not running after apply** — `user_data` only runs on first boot. If you applied without destroying first, the script won't re-run. Destroy and re-apply to trigger it.
+:::
+
+::: tip Key Takeaways
+- `user_data` runs once on first boot — it is not re-executed on `terraform apply` if the server already exists
+- Use `systemctl status nginx` and `curl http://localhost` to confirm nginx is both running and serving
+:::
+
 ## Related Exercises
 - [15 - Cloud-init](./15-cloud-init.md)

@@ -38,5 +38,16 @@ ls bin/  # See wrapper script
 ./bin/ssh  # Works!
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **`cat gen/known_hosts` fails inside the SSH session** — `gen/known_hosts` is generated locally by Terraform on your machine. Exit the server and check it locally in the exercise directory.
+:::
+
+::: tip Key Takeaways
+- The `SshKnownHosts` module encapsulates all SSH wrapper logic — the calling exercise only needs to pass `server_ip` and `devops_username`
+- Generated files (`bin/ssh`, `bin/scp`, `gen/known_hosts`) are always local to your machine, never on the remote server
+:::
+
 ## Related Exercises
 - [24 - Multiple Servers](./24-multiple-servers.md)

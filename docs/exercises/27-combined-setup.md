@@ -50,14 +50,23 @@ runcmd:
 ```
 
 ## Verification
-```bash
-terraform apply  # One-click deploy
-# Wait ~2 mins
-curl https://www.g3...  # Works immediately!
-```
+1. Apply configuration: `terraform apply`
+2. Test HTTP redirects to HTTPS: `curl http://g2.sdi.hdm-stuttgart.cloud` — expect `301 Moved Permanently`
+3. Test HTTPS with staging cert (skip CA verification): `curl -k https://g2.sdi.hdm-stuttgart.cloud`
+4. Verify certificate in browser — expect warning with staging cert, inspect to confirm both SANs present
+5. Switch to production ACME URL in Exercise 25 and re-apply if staging works
 
 ## Problems & Learnings
-**Race Condition:** Terraform must create the cert before the server reads it. Referencing `acme_certificate.wildcard.certificate_pem` ensures correct ordering.
+
+::: warning Common Issues
+- `curl https://...` will fail with a certificate error when using staging — this is expected. Use `curl -k` to bypass or test in a browser.
+- The ACME certificate must be generated **before** the server is created, as the certificate content is passed to cloud-init. Terraform handles this ordering automatically via resource dependencies.
+:::
+
+::: tip Key Takeaways
+- HTTP → HTTPS redirect is configured via Nginx; `curl` against port 80 returns a 301.
+- Staging certificates are functionally identical to production for testing the full chain — only browser/system trust differs.
+:::
 
 ## Related Exercises
 - [25 - Web Certificate](./25-web-certificate.md)

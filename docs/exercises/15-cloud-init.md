@@ -66,5 +66,19 @@ ssh root@<ip>     # Permission denied (good!)
 ssh devops@<ip>   # Success
 ```
 
+## Problems & Learnings
+
+::: warning Common Issues
+- **`cloud-init status: done` but nothing installed** — caused by the `%{~ for ~}` template syntax stripping the newline after `ssh_authorized_keys:`, producing invalid YAML. Cloud-init silently skips the entire config. Fix: use `%{ for ~}` (no leading `~`) so the newline is preserved. Diagnose with `sudo cat /var/log/cloud-init-output.log`.
+- **`plocate-updatedb: command not found`** — `plocate-updatedb` is the systemd service name, not a binary. The correct command is `updatedb`.
+- **Terraform provisioning takes 5+ minutes** — caused by `package_reboot_if_required: true`. If a kernel upgrade is pulled, the server reboots mid-provisioning and the Hetzner provider waits through the reboot. Set to `false` for initial provisioning.
+:::
+
+::: tip Key Takeaways
+- Always check `/var/log/cloud-init-output.log` when cloud-init reports `done` but the server isn't configured — the exit status can be misleading
+- Terraform template `~` strip markers eat adjacent newlines; a leading `~` on a `for` loop removes the newline before it, which breaks YAML list syntax
+- `package_update: true` + `package_upgrade: true` already handle upgrades — a redundant `apt-get dist-upgrade` in `runcmd` doubles the work
+:::
+
 ## Related Exercises
 - [20 - Volume Auto](./20-volume-auto.md)

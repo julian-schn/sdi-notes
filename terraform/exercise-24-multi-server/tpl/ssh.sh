@@ -4,6 +4,6 @@
 
 GEN_DIR=$(dirname "$0")/../gen
 
-ssh -o UserKnownHostsFile="$GEN_DIR/known_hosts" ${devopsUsername}@${hostname} "$@"
+ssh -o UserKnownHostsFile="$GEN_DIR/known_hosts" -o HostKeyAlias="${hostname}" ${devopsUsername}@${ip} "$@"
 
 # end of script

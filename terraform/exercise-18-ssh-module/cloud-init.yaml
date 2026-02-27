@@ -2,7 +2,7 @@
 hostname: ${server_name}
 package_update: true
 package_upgrade: true
-package_reboot_if_required: true
+package_reboot_if_required: false
 ssh_pwauth: false
 disable_root: true
 packages: [nginx, ufw, fail2ban, plocate]
@@ -13,9 +13,9 @@ users:
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     lock_passwd: true
     ssh_authorized_keys:
-%{~ for key in ssh_public_keys ~}
+%{ for key in ssh_public_keys ~}
       - ${key}
-%{~ endfor ~}
+%{ endfor ~}
 write_files:
   - path: /etc/ssh/sshd_config.d/99-hardening.conf
     content: |
@@ -40,10 +40,9 @@ write_files:
       ts=$(date -u +"%a %b %e %I:%M:%S %p %Z %Y")
       echo "I'm Nginx @ \"$ip\" created $ts" > /var/www/html/index.html
 runcmd:
-  - [bash, -lc, "export DEBIAN_FRONTEND=noninteractive; apt-get update && apt-get dist-upgrade -y"]
   - [systemctl, restart, ssh]
   - [bash, -lc, "ufw default deny incoming; ufw default allow outgoing; ufw allow 22/tcp; ufw allow 80/tcp; ufw --force enable"]
   - [systemctl, enable, --now, nginx]
   - [bash, -lc, "/usr/local/bin/render-index.sh"]
   - [systemctl, enable, --now, fail2ban]
-  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; plocate-updatedb"]
+  - [bash, -lc, "systemctl enable --now plocate-updatedb.timer; updatedb"]

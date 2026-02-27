@@ -32,8 +32,11 @@ provisioner "local-exec" {
 
 ### 3. Update Wrapper Template
 ```bash
-#!/bin/bash
-ssh -o UserKnownHostsFile=gen/known_hosts devops@workhorse.g2.sdi.hdm-stuttgart.cloud "$@"
+#!/usr/bin/env bash
+
+GEN_DIR=$(dirname "$0")/../gen
+
+ssh -o UserKnownHostsFile="$GEN_DIR/known_hosts" devops@workhorse.g2.sdi.hdm-stuttgart.cloud "$@"
 ```
 
 ## Verification

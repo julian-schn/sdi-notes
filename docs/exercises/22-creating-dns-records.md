@@ -44,5 +44,13 @@ resource "dns_cname_record" "aliases" {
 terraform import 'dns_cname_record.aliases["www"]' 'g02.sdi.hdm-stuttgart.cloud./www'
 ```
 
+Verify records resolved correctly:
+```bash
+dig +noall +answer @ns1.hdm-stuttgart.cloud g2.sdi.hdm-stuttgart.cloud
+dig +noall +answer @ns1.hdm-stuttgart.cloud workhorse.g2.sdi.hdm-stuttgart.cloud
+dig +noall +answer @ns1.hdm-stuttgart.cloud www.g2.sdi.hdm-stuttgart.cloud
+dig +noall +answer @ns1.hdm-stuttgart.cloud mail.g2.sdi.hdm-stuttgart.cloud
+```
+
 ## Related Exercises
 - [23 - Host with DNS](./23-host-with-dns.md)
